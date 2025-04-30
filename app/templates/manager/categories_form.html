@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Нова категорія — ZLAGODA{% endblock %}
+{% block content %}
+  <h2>Нова категорія</h2>
+  <form method="post" class="needs-validation" novalidate>
+    <div class="mb-3">
+      <label for="name_category" class="form-label">Назва категорії</label>
+      <input id="name_category" name="name_category" class="form-control" required>
+      <div class="invalid-feedback">Вкажіть назву категорії.</div>
+    </div>
+
+    <!-- Приклад ієрархії, поки заглушка -->
+    <div class="mb-3">
+      <label for="parent_id" class="form-label">Батьківська категорія</label>
+      <select id="parent_id" name="parent_id" class="form-select">
+        <option value="">— Без батьківської —</option>
+        <option value="1">Напої</option>
+        <option value="2">Снеки</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Зберегти</button>
+  </form>
+{% endblock %}

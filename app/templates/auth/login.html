@@ -1,18 +1,24 @@
-<!doctype html>
-<html lang="uk">
-<head><meta charset="utf-8"><title>Вхід | Zlagoda</title></head>
-<body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for cat,msg in messages %}
-      <p class="{{cat}}">{{msg}}</p>
-    {% endfor %}
-  {% endwith %}
-
-  <form method="post">
-    <label>Логін*  : <input name="username" required></label><br>
-    <label>Пароль* : <input type="password" name="password" required></label><br>
-    <button type="submit">Увійти</button>
-  </form>
-  <p><a href="{{ url_for('auth.register') }}">Реєстрація</a></p>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}Увійти — ZLAGODA{% endblock %}
+{% block content %}
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title mb-4 text-center">Увійти</h3>
+          <form method="post" novalidate>
+            <div class="mb-3">
+              <label for="username" class="form-label">Логін</label>
+              <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Пароль</label>
+              <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Увійти</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
