@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Новий чек — ZLAGODA{% endblock %}
+{% block content %}
+  <h2>Новий чек</h2>
+  <form method="post" class="needs-validation" novalidate>
+    <div class="mb-3">
+      <label for="card_id" class="form-label">Карта клієнта</label>
+      <select id="card_id" name="card_id" class="form-select">
+        <option value="" selected>Без карти</option>
+        <option value="C001">C001 — Іван І.</option>
+        <option value="C002">C002 — Марія П.</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="product_id" class="form-label">Товар</label>
+      <select id="product_id" name="product_id" class="form-select" required>
+        <option value="" disabled selected>Оберіть товар</option>
+        <option value="P001">P001 — Хліб</option>
+        <option value="P002">P002 — Молоко</option>
+        <option value="P003">P003 — Яблука</option>
+      </select>
+      <div class="invalid-feedback">Виберіть товар.</div>
+    </div>
+
+    <div class="mb-3">
+      <label for="quantity" class="form-label">Кількість</label>
+      <input id="quantity" type="number" name="quantity" class="form-control" min="1" value="1" required>
+      <div class="invalid-feedback">Вкажіть кількість.</div>
+    </div>
+
+    <button class="btn btn-success" type="submit">Створити чек</button>
+  </form>
+{% endblock %}

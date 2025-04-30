@@ -1,0 +1,73 @@
+/* Загальні налаштування */
+body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Navbar */
+.navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+/* Sidebar */
+#sidebar {
+  min-height: calc(100vh - 56px);
+}
+#sidebar .nav-link {
+  color: #555;
+  border-radius: .25rem;
+  transition: background-color .2s;
+}
+#sidebar .nav-link:hover,
+#sidebar .nav-link.active {
+  background-color: #e9ecef;
+  color: #000;
+}
+
+/* Основний контент з відступом під sidebar */
+body:not(.logged-in) main { margin-left: 0; }
+body.logged-in .d-flex > main { margin-left: 240px; }
+
+/* Footer */
+footer { margin-top: auto; }
+
+/* Картки та форми */
+.card { border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+/* Адаптивність */
+@media (max-width: 768px) {
+  #sidebar { display: none; }
+  body.logged-in .d-flex > main { margin-left: 0; }
+}
+
+/* Адаптивність: ховаємо sidebar на маленьких екранах */
+@media (max-width: 768px) {
+  #sidebar {
+    display: none !important;
+  }
+  main {
+    margin-left: 0 !important;
+  }
+}
+
+/* Print-стилі: сховаємо навігацію, кнопки, sidebar та footer */
+@media print {
+  nav.navbar,
+  #sidebar,
+  footer,
+  .btn,
+  .needs-validation {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
