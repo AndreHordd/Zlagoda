@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><title>Реєстрація | Zlagoda</title></head>
+<body>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <p class="{{ cat }}">{{ msg }}</p>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post">
+    <fieldset><legend>Облікові дані</legend>
+      <label>Логін*    :
+        <input name="username" value="{{ form_data.username or '' }}" required>
+      </label><br>
+      <label>Пароль*   :
+        <input type="password" name="password" required>
+      </label><br>
+      <label>Роль*     :
+        <select name="role" required>
+          <option value="manager"
+            {% if form_data.role=='manager' %}selected{% endif %}>
+            Менеджер
+          </option>
+          <option value="cashier"
+            {% if form_data.role=='cashier' %}selected{% endif %}>
+            Касир
+          </option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset><legend>Дані працівника</legend>
+      <label>Прізвище*     :
+        <input name="empl_surname" value="{{ form_data.empl_surname or '' }}" required>
+      </label><br>
+      <label>Ім’я*         :
+        <input name="empl_name" value="{{ form_data.empl_name or '' }}" required>
+      </label><br>
+      <label>По батькові   :
+        <input name="empl_patronymic" value="{{ form_data.empl_patronymic or '' }}">
+      </label><br>
+      <label>Зарплата*     :
+        <input name="salary" type="number" step="0.01"
+               value="{{ form_data.salary or '' }}" required>
+      </label><br>
+      <label>Дата народження* :
+        <input name="date_of_birth" type="date"
+               value="{{ form_data.date_of_birth or '' }}" required>
+      </label><br>
+      <label>Дата початку роботи* :
+        <input name="date_of_start" type="date"
+               value="{{ form_data.date_of_start or '' }}" required>
+      </label><br>
+      <label>Телефон*      :
+        <input name="phone_number" value="{{ form_data.phone_number or '' }}" required>
+      </label><br>
+      <label>Місто*        :
+        <input name="city" value="{{ form_data.city or '' }}" required>
+      </label><br>
+      <label>Вулиця*       :
+        <input name="street" value="{{ form_data.street or '' }}" required>
+      </label><br>
+      <label>Індекс*       :
+        <input name="zip_code" value="{{ form_data.zip_code or '' }}" required>
+      </label><br>
+    </fieldset>
+
+    <button type="submit">Зареєструватися</button>
+  </form>
+
+  <p>Вже є акаунт? <a href="{{ url_for('auth.login') }}">Увійти</a></p>
+</body>
+</html>

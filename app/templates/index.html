@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>Zlagoda — Головна</title>
+</head>
+<body>
+  <h1>Ласкаво просимо до Zlagoda</h1>
+
+  {% if session.username %}
+    <p>Привіт, {{ session.username }}!</p>
+    <p>
+      <a href="{{ url_for('manager_page') }}">Менеджерська</a> |
+      <a href="{{ url_for('cashier_page') }}">Касирська</a> |
+      <a href="{{ url_for('auth.logout') }}">Вийти</a>
+    </p>
+  {% else %}
+    <p><a href="{{ url_for('auth.login') }}">Увійти</a> або
+       <a href="{{ url_for('auth.register') }}">Зареєструватися</a>
+    </p>
+  {% endif %}
+</body>
+</html>

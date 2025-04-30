@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><title>Вхід | Zlagoda</title></head>
+<body>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}
+      <p class="{{cat}}">{{msg}}</p>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post">
+    <label>Логін*  : <input name="username" required></label><br>
+    <label>Пароль* : <input type="password" name="password" required></label><br>
+    <button type="submit">Увійти</button>
+  </form>
+  <p><a href="{{ url_for('auth.register') }}">Реєстрація</a></p>
+</body>
+</html>
