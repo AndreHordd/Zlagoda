@@ -12,6 +12,7 @@
 """
 
 from datetime import date, timedelta
+from decimal import Decimal
 
 from flask import (
     Blueprint, render_template, request,
@@ -53,12 +54,47 @@ manager_bp = Blueprint('manager', __name__, url_prefix='/manager')
 def _restrict_manager():
     return ensure_role('manager')
 
-
+from app.dao.product_dao import (
+    get_all_products,
+    get_all_product_types      # ⬅ додали
+)
 # ═══════════════ 1. DASHBOARD ═══════════════
 @manager_bp.route('/dashboard')
 def dashboard():
-    return render_template('manager/dashboard.html')
+    employees   = get_all_employees()
+    num_total   = len(employees)
+    num_cashier = len([e for e in employees if e['role'] == 'cashier'])
+    num_mgr     = len([e for e in employees if e['role'] == 'manager'])
 
+    products      = get_all_products()          # товари в магазині
+    prod_in_store = len(products)
+
+    # Кількість унікальних типів — простіше взяти окремо
+    prod_types = len(get_all_product_types())   # ⬅️ виправлено
+
+    today    = date.today()
+    last_30  = today - timedelta(days=29)
+    sales_30 = get_total_sales_all_period(last_30, today) or Decimal('0')
+
+    # TOP-5 за 30 днів
+    top = []
+    for p in products:
+        qty = get_quantity_sold_period(p['upc'], last_30, today)
+        if qty:
+            top.append((qty, p))
+    top = sorted(top, reverse=True)[:5]
+
+    return render_template(
+        'manager/dashboard.html',
+        num_total=num_total,
+        num_cashier=num_cashier,
+        num_mgr=num_mgr,
+        prod_types=prod_types,          # ← вже без помилки
+        prod_in_store=prod_in_store,
+        sales_30=sales_30,
+        top_products=top,
+        today=today.isoformat()
+    )
 
 # ═══════════════ 2. ПРАЦІВНИКИ ═══════════════
 @manager_bp.route('/employees')

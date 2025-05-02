@@ -72,7 +72,7 @@
   <div class="d-flex">
     {% if current_user %}
       <!-- SIDEBAR -->
-      <nav id="sidebar" class="bg-white border-end p-3"
+      <nav id="sidebar" class="bg-white border-end"
            style="width:240px; min-height:calc(100vh - 56px);">
         <ul class="nav nav-pills flex-column">
           {% if current_user.role == 'manager' %}
@@ -154,11 +154,11 @@
       </nav>
     {% endif %}
 
-    <!-- MAIN контент -->
-    <main class="flex-grow-1 p-4"
-          style="margin-left:{% if current_user %}240px{% else %}0{% endif %};">
-      {% block content %}{% endblock %}
-    </main>
+   <!-- MAIN -->
+<main id="content" class="flex-grow-1">
+  {% block content %}{% endblock %}
+</main>
+
   </div>
 
   <!-- ───── FOOTER ───── -->

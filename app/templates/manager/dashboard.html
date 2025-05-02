@@ -1,7 +1,59 @@
 {% extends 'base.html' %}
 {% block title %}Дашборд менеджера — ZLAGODA{% endblock %}
+
 {% block content %}
-  <h2>Дашборд менеджера</h2>
-  <p>Ласкаво просимо, {{ current_user.name }}!</p>
-  <!-- Тут згодом виведемо графіки та статистику -->
+<h2 class="mb-4">Дашборд менеджера</h2>
+
+<!-- ───────── КАРТОЧКИ-СТАТИСТИКИ ───────── -->
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100 text-center border-primary">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-people-fill me-1"></i>Працівники</h5>
+        <p class="fs-2 mb-1">{{ num_total }}</p>
+        <small class="text-muted">касирам — {{ num_cashier }}, менеджерам — {{ num_mgr }}</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100 text-center border-success">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-box-seam me-1"></i>Товари у магазині</h5>
+        <p class="fs-2 mb-1">{{ prod_in_store }}</p>
+        <small class="text-muted">типів — {{ prod_types }}</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100 text-center border-info">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-cash-stack me-1"></i>Продажі (30 днів)</h5>
+        <p class="fs-2 mb-1">{{ '%.2f'|format(sales_30) }} ₴</p>
+        <small class="text-muted">станом на {{ today }}</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── TOP‑5 ПРОДАЖ ───────── -->
+<h4 class="mb-3">Топ‑5 найпродаваніших товарів за 30 днів</h4>
+{% if top_products %}
+  <table class="table table-striped w-100">
+    <thead class="table-light">
+      <tr><th>#</th><th>UPC</th><th>Назва</th><th>Кількість</th></tr>
+    </thead>
+   <tbody>
+  {% for qty, p in top_products %}
+    <tr>
+      <td>{{ loop.index }}</td>          {# ← номер рядка #}
+      <td>{{ p.upc }}</td>
+      <td>{{ p.name }}</td>
+      <td>{{ qty }}</td>
+    </tr>
+  {% endfor %}
+</tbody>
+  </table>
+{% else %}
+  <p class="text-muted">Дані відсутні.</p>
+{% endif %}
 {% endblock %}
