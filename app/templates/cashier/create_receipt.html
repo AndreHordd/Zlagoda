@@ -2,33 +2,255 @@
 {% block title %}Новий чек — ZLAGODA{% endblock %}
 {% block content %}
   <h2>Новий чек</h2>
+
+  {# flash-повідомлення #}
+  {% with msgs = get_flashed_messages(with_categories=false) %}
+    {% for m in msgs %}
+      {{ m|safe }}
+    {% endfor %}
+  {% endwith %}
+
   <form method="post" class="needs-validation" novalidate>
+    {# карта клієнта #}
     <div class="mb-3">
-      <label for="card_id" class="form-label">Карта клієнта</label>
-      <select id="card_id" name="card_id" class="form-select">
-        <option value="" selected>Без карти</option>
-        <option value="C001">C001 — Іван І.</option>
-        <option value="C002">C002 — Марія П.</option>
+      <label for="card_number" class="form-label">Карта клієнта</label>
+      <select id="card_number" name="card_number" class="form-select">
+        <option value="">— Без карти —</option>
+        {% for c in cards %}
+          <option
+            value="{{ c.number }}"
+            data-percent="{{ c.percent }}"
+            {% if form_data.card_number == c.number %}selected{% endif %}
+          >
+            {{ c.name }} (-{{ c.percent }} %)
+          </option>
+        {% endfor %}
       </select>
     </div>
 
-    <div class="mb-3">
-      <label for="product_id" class="form-label">Товар</label>
-      <select id="product_id" name="product_id" class="form-select" required>
-        <option value="" disabled selected>Оберіть товар</option>
-        <option value="P001">P001 — Хліб</option>
-        <option value="P002">P002 — Молоко</option>
-        <option value="P003">P003 — Яблука</option>
-      </select>
-      <div class="invalid-feedback">Виберіть товар.</div>
+    {# динамічні рядки з товарами #}
+    <div id="items">
+      {% for idx in indices %}
+      <div class="row item-row g-2 align-items-end mb-3" data-index="{{ idx }}">
+        {# пошук товару #}
+        <div class="col-md-4 position-relative">
+          <input
+            type="text"
+            class="form-control product-search"
+            placeholder="Почніть вводити назву…"
+            autocomplete="off"
+            value="{{ form_data['name_' ~ idx]|default('') }}"
+            required
+          >
+          <input
+            type="hidden"
+            name="upc_{{ idx }}"
+            class="upc-input"
+            value="{{ form_data['upc_' ~ idx]|default('') }}"
+          >
+          <div class="list-group position-absolute product-list shadow-sm bg-white"
+               style="max-height:200px; overflow-y:auto; display:none; z-index:1000;">
+            {% for p in products %}
+              <button
+                type="button"
+                class="list-group-item list-group-item-action"
+                data-upc="{{ p.upc }}"
+                data-price="{{ '%.2f'|format(p.price) }}"
+                data-name="{{ p.name }}"
+              >
+                {{ p.name }} — {{ '%.2f'|format(p.price) }}
+              </button>
+            {% endfor %}
+          </div>
+          <div class="invalid-feedback">Виберіть товар.</div>
+        </div>
+        {# ціна #}
+        <div class="col-md-2">
+          <input
+            type="text"
+            readonly
+            class="form-control price-display"
+            value="{{ form_data['price_' ~ idx]|default('') }}"
+          >
+        </div>
+        {# кількість #}
+        <div class="col-md-2">
+          <input
+            type="number"
+            name="qty_{{ idx }}"
+            class="form-control qty-input"
+            min="1"
+            value="{{ form_data['qty_' ~ idx]|default(1) }}"
+            required
+          >
+          <div class="invalid-feedback">Вкажіть кількість.</div>
+        </div>
+        {# підсумок рядка #}
+        <div class="col-md-2">
+          <input
+            type="text"
+            readonly
+            class="form-control line-total"
+          >
+        </div>
+        {# кнопка × завжди присутня #}
+        <div class="col-md-2">
+          <button type="button" class="btn btn-outline-danger btn-remove">×</button>
+        </div>
+      </div>
+      {% endfor %}
     </div>
 
-    <div class="mb-3">
-      <label for="quantity" class="form-label">Кількість</label>
-      <input id="quantity" type="number" name="quantity" class="form-control" min="1" value="1" required>
-      <div class="invalid-feedback">Вкажіть кількість.</div>
+    <button type="button" id="add-item" class="btn btn-outline-primary mb-3">
+      Додати товар
+    </button>
+
+    <hr>
+
+    {# автоматичні підсумки #}
+    <div class="row g-2">
+      <div class="col-md-3"><strong>Підсумок:</strong></div>
+      <div class="col-md-3"><span id="subtotal">0.00</span> ₴</div>
+    </div>
+    <div class="row g-2">
+      <div class="col-md-3"><strong>Знижка:</strong></div>
+      <div class="col-md-3">- <span id="discount-amount">0.00</span> ₴</div>
+    </div>
+    <div class="row g-2">
+      <div class="col-md-3"><strong>VAT (20 %):</strong></div>
+      <div class="col-md-3"><span id="vat-amount">0.00</span> ₴</div>
+    </div>
+    <div class="row g-2 mb-4">
+      <div class="col-md-3"><strong>До сплати:</strong></div>
+      <div class="col-md-3"><span id="total">0.00</span> ₴</div>
     </div>
 
-    <button class="btn btn-success" type="submit">Створити чек</button>
+    <button type="submit" class="btn btn-success">Створити чек</button>
   </form>
+
+  {# ───────── JS ───────── #}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // найбільший поточний індекс → додаємо наступний
+      let nextIndex = Math.max(...{{ indices|map('int')|list }}) + 1;
+
+      /* ───────── перерахунок підсумків ───────── */
+      function recalc() {
+        let subtotal = 0;
+
+        document.querySelectorAll('.item-row').forEach(row => {
+          const price = parseFloat(row.querySelector('.price-display').value) || 0;
+          const qty   = parseInt(row.querySelector('.qty-input').value) || 0;
+          const line  = price * qty;
+          row.querySelector('.line-total').value = line.toFixed(2);
+          subtotal += line;
+        });
+
+        document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+
+        const percent = parseInt(
+          document.getElementById('card_number').selectedOptions[0].dataset.percent || 0
+        );
+        const discount = subtotal * percent / 100;
+        document.getElementById('discount-amount').textContent = discount.toFixed(2);
+
+        const taxable = subtotal - discount;
+        const vat = taxable * 0.20;
+        document.getElementById('vat-amount').textContent = vat.toFixed(2);
+
+        document.getElementById('total').textContent = (taxable + vat).toFixed(2);
+      }
+
+      /* ───────── підключити обробники до рядка ───────── */
+      function attachRowEvents(row) {
+        const searchInput = row.querySelector('.product-search');
+        const upcInput    = row.querySelector('.upc-input');
+        const priceInput  = row.querySelector('.price-display');
+        const qtyInput    = row.querySelector('.qty-input');
+        const list        = row.querySelector('.product-list');
+        const buttons     = Array.from(list.children);
+
+        // фільтр списку
+        const filter = () => {
+          const term = searchInput.value.trim().toLowerCase();
+          let any = false;
+          buttons.forEach(btn => {
+            const visible = btn.dataset.name.toLowerCase().includes(term);
+            btn.style.display = visible ? '' : 'none';
+            if (visible) any = true;
+          });
+          list.style.display = any ? 'block' : 'none';
+        };
+
+        searchInput.addEventListener('input', filter);
+        searchInput.addEventListener('focus', () => { filter(); list.style.display = 'block'; });
+        document.addEventListener('click', e => {
+          if (!searchInput.contains(e.target) && !list.contains(e.target))
+            list.style.display = 'none';
+        });
+
+        // вибір товару
+        buttons.forEach(btn => btn.addEventListener('click', () => {
+          searchInput.value = btn.dataset.name;
+          upcInput.value    = btn.dataset.upc;
+          priceInput.value  = parseFloat(btn.dataset.price).toFixed(2);
+          list.style.display = 'none';
+          recalc();
+        }));
+
+        qtyInput.addEventListener('input', recalc);
+        document.getElementById('card_number').addEventListener('change', recalc);
+
+        // кнопка ×
+        row.querySelector('.btn-remove').addEventListener('click', () => {
+          const rows = document.querySelectorAll('.item-row');
+          if (rows.length > 1) {
+            row.remove();
+          } else {
+            // якщо рядок один – тільки очищаємо поля
+            searchInput.value = '';
+            upcInput.value    = '';
+            priceInput.value  = '';
+            qtyInput.value    = 1;
+            row.querySelector('.line-total').value = '';
+          }
+          recalc();
+        });
+      }
+
+      // підключити існуючі рядки
+      document.querySelectorAll('.item-row').forEach(attachRowEvents);
+      recalc();
+
+      /* ───────── додати новий рядок ───────── */
+      document.getElementById('add-item').addEventListener('click', () => {
+        const template = document.querySelector('.item-row');
+        const clone    = template.cloneNode(true);
+        const newIdx   = nextIndex++;
+
+        clone.dataset.index = newIdx;
+        clone.querySelectorAll('[name]').forEach(el => {
+          const base = el.getAttribute('name').split('_')[0];
+          el.setAttribute('name', `${base}_${newIdx}`);
+
+          // за замовчуванням кількість = 1, решта поля порожні
+          if (base === 'qty') {
+            el.value = '1';
+          } else {
+            el.value = '';
+          }
+        });
+
+        // окремо очищаємо відображувані поля, щоб не перезаписати qty
+        clone.querySelector('.product-search').value = '';
+        clone.querySelector('.upc-input').value      = '';
+        clone.querySelector('.price-display').value  = '';
+        clone.querySelector('.line-total').value     = '';
+
+        document.getElementById('items').append(clone);
+        attachRowEvents(clone);
+      });
+    });
+  </script>
 {% endblock %}

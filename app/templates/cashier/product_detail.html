@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Товар {{ product.upc }} — ZLAGODA{% endblock %}
+
+{% block content %}
+  <h2>Деталі товару</h2>
+  <table class="table table-bordered w-50">
+    <tr>
+      <th>UPC</th>
+      <td>{{ product.upc }}</td>
+    </tr>
+    <tr>
+      <th>Ціна продажу</th>
+      <td>{{ '%.2f'|format(product.price) }} ₴</td>
+    </tr>
+    <tr>
+      <th>Наявність (шт.)</th>
+      <td>{{ product.quantity }}</td>
+    </tr>
+  </table>
+  <a href="{{ url_for('cashier.products') }}" class="btn btn-secondary mt-3">
+    ← Повернутися до списку товарів
+  </a>
+{% endblock %}

@@ -1,19 +1,17 @@
-from functools import wraps
+# app/utils/auth.py
 from flask import session, redirect, url_for, flash
 
-def login_required(role=None):
+def ensure_role(role):
     """
-    Декоратор, що перевіряє наявність session['user_id'].
-    Якщо role задана — перевіряє session['user_role'].
+    Перевіряє, що:
+      1) користувач увійшов (є session['user_id'])
+      2) його роль = role
+    Якщо ні — редіректить на login із flash-повідомленням.
     """
-    def decorator(f):
-        @wraps(f)
-        def wrapped(*args, **kwargs):
-            if 'user_id' not in session:
-                return redirect(url_for('auth.login'))
-            if role and session.get('user_role') != role:
-                flash('Немає доступу до цієї сторінки', 'error')
-                return redirect(url_for('index'))
-            return f(*args, **kwargs)
-        return wrapped
-    return decorator
+    if 'user_id' not in session:
+        flash('Спочатку увійдіть', 'error')
+        return redirect(url_for('auth.login'))
+    if session.get('user_role') != role:
+        flash('Немає доступу', 'error')
+        return redirect(url_for('index'))
+    # якщо все ок — нічого не повертаємо

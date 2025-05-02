@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — ZLAGODA{% endblock %}
+{% set arrow = {'asc':'↑','desc':'↓'} %}
+{% block content %}
+  <h2>{{ title }}</h2>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        {% for col,label in [
+          ('upc','UPC'),
+          ('name','Назва'),
+          ('characteristics','Опис'),
+          ('category','Категорія'),
+          ('price','Ціна'),
+          ('quantity','Кількість')
+        ] %}
+          <th>
+            {% if col in ['name','quantity'] %}
+              <a href="{{ url_for(
+                   'cashier.promo_products' if promo else
+                   'cashier.nonpromo_products',
+                   sort_by=col,
+                   order=('desc' if sort_by==col and order=='asc' else 'asc')
+                 ) }}">
+                {{ label }}
+                {% if sort_by == col %}
+                  {{ arrow[order] }}
+                {% endif %}
+              </a>
+            {% else %}
+              {{ label }}
+            {% endif %}
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+        <tr>
+          <td>{{ p.upc }}</td>
+          <td>{{ p.name }}</td>
+          <td>{{ p.characteristics }}</td>
+          <td>{{ p.category }}</td>
+          <td>{{ '%.2f'|format(p.price) }}</td>
+          <td>{{ p.quantity }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

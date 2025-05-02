@@ -1,35 +1,125 @@
 {% extends 'base.html' %}
 {% block title %}Звіти — ZLAGODA{% endblock %}
+
 {% block content %}
   <h2>Звіти</h2>
-  <button class="btn btn-outline-primary mb-3" data-bs-toggle="modal" data-bs-target="#previewModal">
-    <i class="bi bi-eye"></i> Попередній перегляд
-  </button>
 
-  <!-- Ваша основна таблиця звітів -->
-  <table class="table table-striped">
-    …
-  </table>
+  <div class="row g-3 align-items-end mb-4">
+    <div class="col-md-4">
+      <label class="form-label">Виберіть таблицю</label>
+      <select id="report-select" class="form-select">
+        <option value="" selected disabled>— Оберіть —</option>
+        <option value="employees">Працівники</option>
+        <option value="customers">Постійні клієнти</option>
+        <option value="categories">Категорії товарів</option>
+        <option value="product_types">Типи товарів</option>
+        <option value="store_products">Товари у магазині</option>
+        <option value="checks">Чеки</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button id="preview-btn" class="btn btn-outline-primary"
+              data-bs-toggle="modal" data-bs-target="#previewModal" disabled>
+        <i class="bi bi-eye"></i> Попередній перегляд
+      </button>
+    </div>
+  </div>
 
-  <!-- Модальне вікно для попереднього перегляду -->
-  <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+  <!-- ───── Модальне вікно ───── -->
+  <div class="modal fade" id="previewModal" tabindex="-1"
+       aria-labelledby="previewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="previewModalLabel">Попередній перегляд звіту</h5>
+          <h5 class="modal-title" id="previewModalLabel">Попередній перегляд</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <!-- Дубль таблиці без навігації -->
-          <table class="table table-bordered">
-            …
-          </table>
+          <div id="report-table-wrapper" class="table-responsive"></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
-          <button class="btn btn-primary" onclick="window.print()">Друк</button>
+          <button id="print-btn" class="btn btn-primary" disabled>
+            Друк
+          </button>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- ───── JS ───── -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    const select     = document.getElementById('report-select');
+    const previewBtn = document.getElementById('preview-btn');
+    const printBtn   = document.getElementById('print-btn');
+    const wrapper    = document.getElementById('report-table-wrapper');
+
+    /* вмикаємо «Попередній перегляд», коли обрано таблицю */
+    select.addEventListener('change', () => {
+      previewBtn.disabled = !select.value;
+      printBtn.disabled   = true;          // доки не завантажили HTML
+    });
+
+    /* ───── завантаження HTML ───── */
+    previewBtn.addEventListener('click', () => {
+      const tbl = select.value;
+      if (!tbl) return;
+
+      const base = window.location.pathname.replace(/\/$/, '');
+      fetch(`${base}/preview/${tbl}`)
+        .then(r => r.text())
+        .then(html => {
+          wrapper.innerHTML = html;
+          document.getElementById('previewModalLabel').textContent =
+            select.options[select.selectedIndex].text;
+          printBtn.disabled = false;       // усе готово
+        })
+        .catch(err => {
+          console.error(err);
+          wrapper.innerHTML =
+            `<div class="alert alert-danger"> ${err} </div>`;
+          printBtn.disabled = true;
+        });
+    });
+
+    /* ───── друк у безпечному режимі ───── */
+    printBtn.addEventListener('click', () => {
+      if (printBtn.disabled) return;
+
+      const w = window.open('', '_blank', 'width=1200,height=800');
+
+      w.document.write(`
+        <html>
+          <head>
+            <title>Report</title>
+            <style>
+              @page { size: A4 landscape; margin:10mm; }
+              body  { font-family:"Segoe UI",Tahoma,sans-serif; }
+              table { width:100%; border-collapse:collapse; }
+              th,td { border:1px solid #777; padding:4px; font-size:12px; }
+              thead { background:#f1f1f1; display:table-header-group; }
+            </style>
+          </head>
+          <body>
+            ${wrapper.innerHTML}
+          </body>
+        </html>
+      `);
+      w.document.close();   // обов’язково
+
+      /* Чекаємо, доки все намалюється у новому вікні */
+      w.onload = () => {
+        w.focus();
+        w.print();
+      };
+
+      /* Закриваємо після завершення друку (користувач натисне OK/Cancel) */
+      w.onafterprint = () => w.close();
+    });
+  });
+</script>
+
+
 {% endblock %}

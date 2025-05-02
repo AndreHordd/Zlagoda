@@ -1,21 +1,50 @@
 {% extends 'base.html' %}
 {% block title %}Увійти — ZLAGODA{% endblock %}
+
 {% block content %}
   <div class="row justify-content-center mt-5">
     <div class="col-md-5 col-lg-4">
+
+      {# ───────── FLASH-ПОВІДОМЛЕННЯ ───────── #}
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% if msgs %}
+          {% for cat, msg in msgs %}
+            <div
+              class="alert alert-{{ 'danger' if cat in ['error','danger'] else cat }} alert-dismissible fade show"
+              role="alert"
+            >
+              {{ msg|safe }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
       <div class="card shadow-sm">
         <div class="card-body">
           <h3 class="card-title mb-4 text-center">Увійти</h3>
+
           <form method="post" novalidate>
             <div class="mb-3">
               <label for="username" class="form-label">Логін</label>
-              <input type="text" id="username" name="username" class="form-control" required>
+              <input
+                type="text" id="username" name="username"
+                class="form-control" required
+                value="{{ request.form.username or '' }}"
+              >
             </div>
+
             <div class="mb-3">
               <label for="password" class="form-label">Пароль</label>
-              <input type="password" id="password" name="password" class="form-control" required>
+              <input
+                type="password" id="password" name="password"
+                class="form-control" required
+              >
             </div>
-            <button type="submit" class="btn btn-primary w-100">Увійти</button>
+
+            <button type="submit" class="btn btn-primary w-100">
+              Увійти
+            </button>
           </form>
         </div>
       </div>

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Список товарів — ZLAGODA{% endblock %}
+{% set arrow = {'asc':'↑','desc':'↓'} %}
+{% block content %}
+  <h2>Список товарів</h2>
+
+  <!-- Кнопка-перемикач -->
+  <p>
+    <a href="{{ url_for('cashier.product_types') }}"
+       class="btn btn-outline-info mb-3">
+      → Типи товарів
+    </a>
+  </p>
+
+  <!-- Форма фільтрів -->
+  <form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Категорія</label>
+        <select name="category" class="form-select">
+          <option value="">Усі категорії</option>
+          {% for c in categories %}
+            <option value="{{ c.name }}"
+                    {% if c.name == category %}selected{% endif %}>
+              {{ c.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Акційність</label>
+        <select name="promo" class="form-select">
+          <option value=""  {% if promo==None %}selected{% endif %}>Усі</option>
+          <option value="1" {% if promo=='1' %}selected{% endif %}>Акційні</option>
+          <option value="0" {% if promo=='0' %}selected{% endif %}>Не акційні</option>
+        </select>
+      </div>
+
+      <div class="col-md-5">
+        <label class="form-label">Пошук</label>
+        <div class="input-group">
+          <select name="field" class="form-select" style="max-width:35%;">
+            <option value="name"            {% if field=='name' %}selected{% endif %}>Назва</option>
+            <option value="upc"             {% if field=='upc' %}selected{% endif %}>UPC</option>
+            <option value="category"        {% if field=='category' %}selected{% endif %}>Категорія</option>
+            <option value="characteristics" {% if field=='characteristics' %}selected{% endif %}>Опис</option>
+          </select>
+          <input type="text" name="search" class="form-control"
+                 placeholder="Введіть запит…" value="{{ search or '' }}">
+        </div>
+      </div>
+
+      <div class="col-auto">
+        <button class="btn btn-primary">Застосувати</button>
+      </div>
+    </div>
+  </form>
+
+  {% if store_products %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          {% for col,label in [
+            ('upc','UPC'),
+            ('name','Назва'),
+            ('characteristics','Опис'),
+            ('category','Категорія'),
+            ('price','Ціна'),
+            ('quantity','Кількість'),
+            ('promotional','Акційний')
+          ] %}
+            <th>
+              <a href="{{ url_for('cashier.products',
+                                   sort_by=col,
+                                   order=('desc' if sort_by==col and order=='asc' else 'asc'),
+                                   category=category,
+                                   promo=promo,
+                                   field=field,
+                                   search=search) }}">
+                {{ label }}
+                {% if sort_by == col %} {{ arrow[order] }}{% endif %}
+              </a>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in store_products %}
+          <tr>
+            <td>{{ p.upc }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.characteristics }}</td>
+            <td>{{ p.category }}</td>
+            <td>{{ '%.2f'|format(p.price) }}</td>
+            <td>{{ p.quantity }}</td>
+            <td>{{ 'Так' if p.promotional else 'Ні' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Немає товарів, що відповідають критеріям.</p>
+  {% endif %}
+{% endblock %}

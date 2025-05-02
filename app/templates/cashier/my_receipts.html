@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Мої чеки — ZLAGODA{% endblock %}
+{% set arrow = {'asc':'↑','desc':'↓'} %}
+{% block content %}
+  <h2>Мої чеки</h2>
+
+  <!-- Форма фільтра -->
+  <form method="get" class="row g-2 align-items-end mb-3">
+    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+    <input type="hidden" name="order"   value="{{ order }}">
+    <div class="col-md-3">
+      <label class="form-label">Від</label>
+      <input type="date" name="from" class="form-control"
+             value="{{ date_from or '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">До</label>
+      <input type="date" name="to" class="form-control"
+             value="{{ date_to or '' }}">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary">Фільтрувати</button>
+    </div>
+    <div class="col-auto">
+      <a class="btn btn-outline-secondary"
+         href="{{ url_for('cashier.my_receipts',
+                          today=1,
+                          sort_by=sort_by,
+                          order=order) }}">
+        Сьогодні
+      </a>
+    </div>
+    <div class="col-auto">
+      <a class="btn btn-outline-secondary"
+         href="{{ url_for('cashier.my_receipts',
+                          sort_by=sort_by,
+                          order=order) }}">
+        Скинути
+      </a>
+    </div>
+  </form>
+
+  {% if receipts %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          {% for col,label in [
+            ('number','Номер'),
+            ('date','Дата'),
+            ('total','Сума, ₴')
+          ] %}
+            <th>
+              <a href="{{ url_for('cashier.my_receipts',
+                                   sort_by=col,
+                                   order=('desc' if sort_by==col and order=='asc' else 'asc'),
+                                   from=date_from, to=date_to) }}">
+                {{ label }}
+                {% if sort_by == col %}
+                  {{ arrow[order] }}
+                {% endif %}
+              </a>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in receipts %}
+          <tr>
+            <td>
+              <a href="{{ url_for('cashier.receipt_detail',
+                                  check_number=r.number) }}">
+                {{ r.number }}
+              </a>
+            </td>
+            <td>{{ r.date }}</td>
+            <td>{{ '%.2f'|format(r.total) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Чеків за обраний період немає.</p>
+  {% endif %}
+{% endblock %}

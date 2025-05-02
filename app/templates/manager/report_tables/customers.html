@@ -1,0 +1,19 @@
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>№ картки</th><th>Прізвище</th><th>Ім’я</th>
+      <th>Телефон</th><th>Знижка %</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in data %}
+      <tr>
+        <td>{{ c.card_number }}</td>
+        <td>{{ c.surname }}</td>
+        <td>{{ c.name }}</td>
+        <td>{{ c.phone }}</td>
+        <td>{{ c.percent }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

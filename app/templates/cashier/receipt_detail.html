@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Чек {{ header.number }} — ZLAGODA{% endblock %}
+{% block content %}
+  <h2>Чек № {{ header.number }}</h2>
+
+  <p><strong>Дата:</strong> {{ header.date }}</p>
+  <p><strong>Касир:</strong> {{ header.cashier }}</p>
+  <p><strong>Карта клієнта:</strong>
+     {{ header.card or '—' }}
+     {% if header.card %}(знижка {{ header.disc }} %) {% endif %}
+  </p>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>UPC</th>
+        <th>Назва</th>
+        <th>К-сть</th>
+        <th>Ціна</th>
+        <th>Сума</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in items %}
+        <tr>
+          <td>{{ i.upc }}</td>
+          <td>{{ i.name }}</td>
+          <td>{{ i.qty }}</td>
+          <td>{{ "%.2f"|format(i.price) }}</td>
+          <td>{{ "%.2f"|format(i.total) }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="mt-3">
+    <p><strong>Підсумок:</strong> {{ "%.2f"|format(header.subtotal) }} ₴</p>
+    <p><strong>Знижка:</strong> - {{ "%.2f"|format(header.discount) }} ₴</p>
+    <p><strong>VAT (20 %):</strong> {{ "%.2f"|format(header.vat) }} ₴</p>
+    <h4>До сплати: {{ "%.2f"|format(header.total) }} ₴</h4>
+  </div>
+
+  <a href="{{ url_for('cashier.my_receipts') }}" class="btn btn-outline-secondary mt-3">
+    ← Повернутися до списку
+  </a>
+{% endblock %}

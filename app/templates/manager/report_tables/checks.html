@@ -1,0 +1,13 @@
+<table class="table table-bordered">
+  <thead>
+    <tr><th>Номер</th><th>Дата</th><th>ID касира</th><th>Сума, ₴</th></tr>
+  </thead>
+  <tbody>
+    {% for ch in rows %}
+      <tr>
+        <td>{{ ch.number }}</td><td>{{ ch.date }}</td>
+        <td>{{ ch.cashier }}</td><td>{{ '%.2f'|format(ch.total) }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

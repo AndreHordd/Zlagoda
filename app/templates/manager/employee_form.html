@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% if mode == 'new' %}
+  {% set page_title = 'Новий працівник' %}
+{% else %}
+  {% set page_title = 'Редагування працівника' %}
+{% endif %}
+{% block title %}{{ page_title }} — ZLAGODA{% endblock %}
+
+{% block content %}
+  <h2>{{ page_title }}</h2>
+
+  <form method="post" class="needs-validation" novalidate>
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Прізвище</label>
+        <input name="surname" class="form-control" required
+               value="{{ employee.surname|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Ім’я</label>
+        <input name="name" class="form-control" required
+               value="{{ employee.name|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">По батькові</label>
+        <input name="patronymic" class="form-control"
+               value="{{ employee.patronymic|default('') }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Посада</label>
+        <select name="role" class="form-select" required>
+          <option value="manager"
+                  {% if employee.role=='manager' %}selected{% endif %}>
+            Менеджер
+          </option>
+          <option value="cashier"
+                  {% if employee.role=='cashier' %}selected{% endif %}>
+            Касир
+          </option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Зарплата</label>
+        <input name="salary" type="number" step="0.01" min="0"
+               class="form-control" required
+               value="{{ employee.salary|default('') }}">
+      </div>
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Дата народження</label>
+        <input name="dob" type="date" class="form-control" required
+               value="{{ employee.date_of_birth|default('') }}">
+      </div>
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Працює з</label>
+        <input name="start_date" type="date" class="form-control" required
+               value="{{ employee.date_of_start|default('') }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Телефон</label>
+        <input name="phone" class="form-control" required
+               value="{{ employee.phone_number|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Місто</label>
+        <input name="city" class="form-control" required
+               value="{{ employee.city|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Вулиця</label>
+        <input name="street" class="form-control" required
+               value="{{ employee.street|default('') }}">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Індекс</label>
+      <input name="zip_code" class="form-control" required
+             value="{{ employee.zip_code|default('') }}">
+    </div>
+
+    <button class="btn btn-success">
+      {{ 'Створити' if mode=='new' else 'Зберегти' }}
+    </button>
+    <a href="{{ url_for('manager.employees') }}"
+       class="btn btn-outline-secondary ms-2">Скасувати</a>
+  </form>
+{% endblock %}

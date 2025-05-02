@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Категорії — ZLAGODA{% endblock %}
+{% set arrow = {'asc':'↑','desc':'↓'} %}
+
+{% block content %}
+  <h2>Категорії</h2>
+
+  {# ───── Форма швидкого додавання категорії ───── #}
+  <form method="post" class="row g-2 align-items-end mb-4"
+        action="{{ url_for('manager.categories',
+                           sort_by=sort_by, order=order) }}">
+    <div class="col-md-4">
+      <label class="form-label">Нова назва</label>
+      <input type="text" name="new_name" class="form-control"
+             placeholder="Введіть назву…" required>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary">Додати</button>
+    </div>
+  </form>
+
+  {% macro th(col, label) -%}
+    <th>
+      <a href="{{ url_for('manager.categories',
+                           sort_by=col,
+                           order=('desc' if sort_by==col and order=='asc' else 'asc')) }}">
+        {{ label }}
+        {% if sort_by == col %}{{ arrow[order] }}{% endif %}
+      </a>
+    </th>
+  {%- endmacro %}
+
+  {% if categories %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          {{ th('id',   'ID') }}
+          {{ th('name', 'Назва') }}
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in categories %}
+          <tr>
+            <td>{{ c.id }}</td>
+            <td>{{ c.name }}</td>
+            <td class="text-nowrap">
+              <a class="btn btn-sm btn-outline-secondary"
+                 href="{{ url_for('manager.edit_category', cat_id=c.id) }}">
+                Редагувати
+              </a>
+              <form method="post"
+                    action="{{ url_for('manager.delete_category_route', cat_id=c.id) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Видалити категорію?');">
+                <button class="btn btn-sm btn-outline-danger">✕</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Немає категорій.</p>
+  {% endif %}
+{% endblock %}

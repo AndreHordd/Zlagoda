@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Статистика продажів — ZLAGODA{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Статистика продажів</h2>
+
+<!-- ========== ФОРМА ПАРАМЕТРІВ ========== -->
+<form method="get" class="card card-body shadow-sm mb-4">
+  <div class="row g-3">
+    <!-- Касир -->
+    <div class="col-lg-3">
+      <label class="form-label">Касир</label>
+      <select name="cashier" class="form-select">
+        <option value="all" {% if not cashier_id %}selected{% endif %}>Усі кашири</option>
+        {% for c in cashiers %}
+          <option value="{{ c.id }}" {% if c.id==cashier_id %}selected{% endif %}>
+            {{ c.surname }} {{ c.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Товар (UPC або назва) -->
+    <div class="col-lg-4 position-relative">
+      <label class="form-label">Товар (UPC або назва)</label>
+      <input id="product-input" name="product"
+             class="form-control" autocomplete="off"
+             value="{{ product_input or '' }}" placeholder="Почніть вводити…">
+      <div id="product-list"
+           class="list-group position-absolute bg-white shadow-sm"
+           style="max-height:230px; overflow-y:auto; display:none; z-index:1000;">
+        {% for p in products %}
+          <button type="button"
+                  class="list-group-item list-group-item-action"
+                  data-upc="{{ p.upc }}"
+                  data-name="{{ p.name }}">
+            {{ p.name }} — {{ p.upc }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Тип періоду -->
+    <div class="col-lg-2">
+      <label class="form-label">Період</label>
+      <select name="period" id="period-select" class="form-select">
+        <option value="day"   {% if period=='day'   %}selected{% endif %}>День</option>
+        <option value="7d"    {% if period=='7d'    %}selected{% endif %}>7 днів</option>
+        <option value="month" {% if period=='month' %}selected{% endif %}>Місяць</option>
+        <option value="year"  {% if period=='year'  %}selected{% endif %}>Рік</option>
+        <option value="all"   {% if period=='all'   %}selected{% endif %}>За весь час</option>
+        <option value="custom" {% if period=='custom' %}selected{% endif %}>Свій період</option>
+      </select>
+    </div>
+
+    <!-- Базова дата (для day/7d/month/year) -->
+    <div class="col-lg-2" id="base-date-col">
+      <label class="form-label">Дата</label>
+      <input type="date" name="date" id="base-date"
+             class="form-control" value="{{ ref_day }}">
+    </div>
+
+    <!-- Діапазон для custom -->
+    <div class="col-lg-2 d-none" id="from-col">
+      <label class="form-label">Від</label>
+      <input type="date" name="from" id="from-input"
+             class="form-control" value="{{ d_from }}">
+    </div>
+    <div class="col-lg-2 d-none" id="to-col">
+      <label class="form-label">До</label>
+      <input type="date" name="to" id="to-input"
+             class="form-control" value="{{ d_to }}">
+    </div>
+
+    <!-- Кнопка -->
+    <div class="col-auto align-self-end">
+      <button class="btn btn-primary">Порахувати</button>
+    </div>
+  </div>
+</form>
+
+<!-- ========== РЕЗУЛЬТАТИ ========== -->
+<div class="row g-4">
+  <div class="col-xl-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-header bg-primary text-white">Сума продажів касира</div>
+      <div class="card-body">
+        {% if total_by_cashier is not none %}
+          <h3>{{ '%.2f'|format(total_by_cashier) }} ₴</h3>
+        {% else %}
+          <p class="text-muted">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-header bg-success text-white">Сума продажів усіх касирів</div>
+      <div class="card-body">
+        {% if total_all is not none %}
+          <h3>{{ '%.2f'|format(total_all) }} ₴</h3>
+        {% else %}
+          <p class="text-muted">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card text-center shadow-sm">
+      <div class="card-header bg-info text-white">Продано одиниць товару</div>
+      <div class="card-body">
+        {% if qty_sold is not none %}
+          <h5>{{ chosen_product.name }} ({{ chosen_product.upc }})</h5>
+          <h3>{{ qty_sold }}</h3>
+        {% else %}
+          <p class="text-muted">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== JS: автопідказка + перемикання полів ====== -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  /* ---- автодоповнення товару ---- */
+  const input = document.getElementById('product-input');
+  const list  = document.getElementById('product-list');
+  const items = Array.from(list.children);
+
+  const filter = () => {
+    const term = input.value.trim().toLowerCase();
+    let any = false;
+    items.forEach(it => {
+      const txt = (it.dataset.name + ' ' + it.dataset.upc).toLowerCase();
+      const ok  = txt.includes(term);
+      it.style.display = ok ? '' : 'none';
+      if (ok) any = true;
+    });
+    list.style.display = any ? 'block' : 'none';
+  };
+
+  input.addEventListener('input', filter);
+  input.addEventListener('focus', filter);
+  document.addEventListener('click', e => {
+    if (!input.contains(e.target) && !list.contains(e.target))
+      list.style.display = 'none';
+  });
+  items.forEach(it => it.addEventListener('click', () => {
+    input.value = it.dataset.upc;
+    list.style.display = 'none';
+  }));
+
+  /* ---- перемикання полів дати ---- */
+  const periodSel = document.getElementById('period-select');
+  const baseCol   = document.getElementById('base-date-col');
+  const fromCol   = document.getElementById('from-col');
+  const toCol     = document.getElementById('to-col');
+
+  const toggleDateFields = () => {
+    const p = periodSel.value;
+    if (p === 'custom') {
+      baseCol.classList.add('d-none');
+      fromCol.classList.remove('d-none');
+      toCol.classList.remove('d-none');
+    } else if (p === 'all') {
+      baseCol.classList.add('d-none');
+      fromCol.classList.add('d-none');
+      toCol.classList.add('d-none');
+    } else {
+      baseCol.classList.remove('d-none');
+      fromCol.classList.add('d-none');
+      toCol.classList.add('d-none');
+    }
+  };
+  periodSel.addEventListener('change', toggleDateFields);
+  toggleDateFields();   // init
+});
+</script>
+{% endblock %}

@@ -1,0 +1,20 @@
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>UPC</th><th>Назва</th><th>Категорія</th>
+      <th>Ціна</th><th>Кількість</th><th>Акція</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in data %}
+      <tr>
+        <td>{{ s.upc }}</td>
+        <td>{{ s.name }}</td>
+        <td>{{ s.category }}</td>
+        <td>{{ '%.2f'|format(s.price) }}</td>
+        <td>{{ s.quantity }}</td>
+        <td>{{ 'Так' if s.promotional else 'Ні' }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

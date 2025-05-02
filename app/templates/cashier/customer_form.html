@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% if mode == 'new' %}
+  {% set page_title = 'Нова картка' %}
+{% else %}
+  {% set page_title = 'Редагувати картку' %}
+{% endif %}
+{% block title %}{{ page_title }} — ZLAGODA{% endblock %}
+
+{% block content %}
+  <h2>{{ page_title }}</h2>
+
+  <form method="post" class="needs-validation" novalidate>
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">№ картки</label>
+        {% if mode == 'new' %}
+          <input class="form-control" disabled
+                 placeholder="Буде згенеровано автоматично">
+        {% else %}
+          <input class="form-control" disabled
+                 value="{{ customer.card_number }}">
+        {% endif %}
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Знижка (%)</label>
+        <input type="number" name="percent" min="0" max="100"
+               class="form-control" required
+               value="{{ customer.percent|default(0) }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Прізвище</label>
+        <input name="surname" class="form-control" required
+               value="{{ customer.surname|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Ім’я</label>
+        <input name="name" class="form-control" required
+               value="{{ customer.name|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">По батькові</label>
+        <input name="patronymic" class="form-control"
+               value="{{ customer.patronymic|default('') }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Телефон</label>
+        <input name="phone" class="form-control" required
+               value="{{ customer.phone|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Місто</label>
+        <input name="city" class="form-control"
+               value="{{ customer.city|default('') }}">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Вулиця</label>
+        <input name="street" class="form-control"
+               value="{{ customer.street|default('') }}">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Індекс</label>
+      <input name="zip_code" class="form-control"
+             value="{{ customer.zip_code|default('') }}">
+    </div>
+
+    <button class="btn btn-success">
+      {{ 'Створити' if mode == 'new' else 'Зберегти' }}
+    </button>
+    <a href="{{ url_for('cashier.cashier_cards.list_customers') }}"
+       class="btn btn-outline-secondary ms-2">Скасувати</a>
+  </form>
+{% endblock %}

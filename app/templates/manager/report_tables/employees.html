@@ -1,0 +1,20 @@
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th><th>Прізвище</th><th>Ім’я</th><th>Роль</th>
+      <th>Зарплата</th><th>Працює з</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in data %}
+      <tr>
+        <td>{{ e.id }}</td>
+        <td>{{ e.surname }}</td>
+        <td>{{ e.name }}</td>
+        <td>{{ e.role }}</td>
+        <td>{{ '%.2f'|format(e.salary) }}</td>
+        <td>{{ e.date_of_start }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

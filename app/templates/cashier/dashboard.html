@@ -1,7 +1,35 @@
 {% extends 'base.html' %}
 {% block title %}Панель касира — ZLAGODA{% endblock %}
 {% block content %}
-  <h2>Панель касира</h2>
-  <p>Вітаю, {{ current_user.name }}!</p>
-  <!-- Тут згодом можна вставити швидкі посилання на операції касира -->
+<h2>Панель касира</h2>
+
+{% if employee %}
+  <div class="row">
+    <div class="col-lg-6 col-xl-5">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            {{ employee.surname }} {{ employee.name }}
+            {% if employee.patronymic %}{{ employee.patronymic }}{% endif %}
+          </h5>
+
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>Логін:</strong> {{ username }}</li>
+            <li class="list-group-item"><strong>ID працівника:</strong> {{ employee.id }}</li>
+            <li class="list-group-item"><strong>Роль:</strong> {{ employee.role }}</li>
+            <li class="list-group-item"><strong>Зарплата:</strong> {{ '%.2f'|format(employee.salary) }} ₴</li>
+            <li class="list-group-item"><strong>Дата народження:</strong> {{ employee.date_of_birth }}</li>
+            <li class="list-group-item"><strong>Працює з:</strong> {{ employee.date_of_start }}</li>
+            <li class="list-group-item"><strong>Телефон:</strong> {{ employee.phone_number }}</li>
+            <li class="list-group-item"><strong>Адреса:</strong>
+              {{ employee.city }}, {{ employee.street }}, {{ employee.zip_code }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <p class="text-danger">Не вдалося завантажити ваші дані.</p>
+{% endif %}
 {% endblock %}

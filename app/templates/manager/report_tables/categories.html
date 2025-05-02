@@ -1,0 +1,10 @@
+<table class="table table-bordered">
+  <thead>
+    <tr><th>ID</th><th>Назва</th></tr>
+  </thead>
+  <tbody>
+    {% for cat in data %}
+      <tr><td>{{ cat.id }}</td><td>{{ cat.name }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>

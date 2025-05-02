@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Постійні клієнти — ZLAGODA{% endblock %}
+{% block content %}
+  <h2>Постійні клієнти</h2>
+
+  <p>
+    <a href="{{ url_for('cashier.cashier_cards.new_customer') }}"
+       class="btn btn-outline-primary mb-3">
+      + Додати клієнта
+    </a>
+  </p>
+
+  <form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label for="search" class="form-label">Пошук за прізвищем</label>
+        <input id="search" name="search" class="form-control"
+               placeholder="Введіть прізвище…"
+               value="{{ search or '' }}">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary">Шукати</button>
+      </div>
+    </div>
+  </form>
+
+  {% if customers %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>№ картки</th><th>Прізвище</th><th>Ім’я</th><th>По батькові</th>
+          <th>Телефон</th><th>Місто</th><th>Вулиця</th><th>Індекс</th>
+          <th>Знижка (%)</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customers %}
+          <tr>
+            <td>{{ c.card_number }}</td>
+            <td>{{ c.surname }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.patronymic or '' }}</td>
+            <td>{{ c.phone }}</td>
+            <td>{{ c.city or '' }}</td>
+            <td>{{ c.street or '' }}</td>
+            <td>{{ c.zip_code or '' }}</td>
+            <td>{{ c.percent }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-secondary"
+                 href="{{ url_for('cashier.cashier_cards.edit_customer',
+                                  card_number=c.card_number) }}">
+                Редагувати
+              </a>
+              <form method="post"
+                    action="{{ url_for('cashier.cashier_cards.delete_customer',
+                                       card_number=c.card_number) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Видалити картку?');">
+                <button class="btn btn-sm btn-outline-danger">✕</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Немає постійних клієнтів.</p>
+  {% endif %}
+{% endblock %}

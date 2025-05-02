@@ -1,12 +1,31 @@
+"""
+Головний factory файл Flask-застосунку.
+"""
+
 import datetime
-from flask import Flask, session, g, render_template, url_for, redirect
+import logging
+import os
+import sys
+import traceback
+
+from flask import (
+    Flask, session, g, render_template,
+    url_for, redirect, current_app, send_from_directory
+)
+
 from .utils.db import get_db, close_db
-from .api.auth import auth_bp
+
+# ─── blueprints ─────────────────────────────────────────────────────────
+from .api.auth            import auth_bp
 from .views.manager.routes import manager_bp
 from .views.cashier.routes import cashier_bp
 
-def create_app():
-    # Явно вказуємо папки зі статикою й шаблонами
+
+# ────────────────────────────────────────────────────────────────────────
+# factory-функція
+# ────────────────────────────────────────────────────────────────────────
+def create_app() -> Flask:
+    # ─── базове створення ──────────────────────────────────────────────
     app = Flask(
         __name__,
         static_folder='static',
@@ -15,54 +34,108 @@ def create_app():
     )
     app.config.from_object('app.config.Config')
 
-    # Реєструємо Blueprint-­и
-    app.register_blueprint(auth_bp,    url_prefix='/auth')
-    app.register_blueprint(manager_bp, url_prefix='/manager')
-    app.register_blueprint(cashier_bp, url_prefix='/cashier')
+    # ─── налагодження / логування ──────────────────────────────────────
+    app.config.update(
+        DEBUG=True,                  # режим відлагодження
+        PROPAGATE_EXCEPTIONS=True    # пропускати винятки до Werkzeug
+    )
+    app.debug = True
 
-    @app.context_processor
-    def inject_globals():
-        # Поточний рік для футера
-        current_year = datetime.datetime.now().year
+    stream_h = logging.StreamHandler(sys.stderr)
+    stream_h.setLevel(logging.ERROR)
+    stream_h.setFormatter(
+        logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+    )
+    if not any(isinstance(h, logging.StreamHandler) for h in app.logger.handlers):
+        app.logger.addHandler(stream_h)
+    app.logger.setLevel(logging.ERROR)
 
-        # Поточний користувач (або None)
-        user = None
+    @app.errorhandler(Exception)
+    def _log_unhandled(exc):
+        """Логуємо повний traceback і повертаємо 500."""
+        traceback.print_exc()
+        return "Internal Server Error", 500
+
+    # ─── реєстрація Blueprints (БЕЗ додаткових url_prefix!) ────────────
+    # Кожен Blueprint уже містить свій власний prefix:
+    #   * auth_bp       → '/auth'
+    #   * manager_bp    → '/manager'
+    #   * cashier_bp    → '/cashier'
+    # Тому додавати prefix під час реєстрації не треба — інакше виходить
+    # подвійний шлях типу  /auth/auth/login  або  /manager/manager/…
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(manager_bp)
+    app.register_blueprint(cashier_bp)
+
+    # ─── поточний користувач у g ───────────────────────────────────────
+    @app.before_request
+    def load_current_user():
+        g.current_user = None
         if 'user_id' in session:
             conn = get_db()
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT id_user, name, role
-                  FROM users
-                 WHERE id_user = %s
-            """, (session['user_id'],))
+            cur  = conn.cursor()
+            cur.execute(
+                """
+                SELECT id, username, role, employee_id
+                  FROM auth_user
+                 WHERE id = %s
+                """,
+                (session['user_id'],)
+            )
             row = cur.fetchone()
-            close_db(conn)
             if row:
-                # Простий об’єкт із потрібними атрибутами
-                user = type('U', (), {
-                    'id':   row[0],
-                    'name': row[1],
-                    'role': row[2]
-                })
+                full_name = row[1]  # за замовчуванням — username
+                if row[3]:          # є привʼязка до працівника
+                    cur.execute(
+                        """
+                        SELECT empl_surname, empl_name
+                          FROM Employee
+                         WHERE id_employee = %s
+                        """,
+                        (row[3],)
+                    )
+                    emp = cur.fetchone()
+                    if emp:
+                        full_name = f"{emp[0]} {emp[1]}"
 
-        # Хлібні крихти для кожної сторінки
-        breadcrumb = getattr(g, 'breadcrumb', None)
+                # робимо легку proxy-«модель» User
+                g.current_user = type(
+                    'User', (), {
+                        'id':       row[0],
+                        'username': row[1],
+                        'name':     full_name,
+                        'role':     row[2]
+                    }
+                )
+            close_db(conn)
 
+    # ─── глобальні змінні для всіх шаблонів ────────────────────────────
+    @app.context_processor
+    def inject_globals():
         return {
-            'current_user': user,
-            'current_year': current_year,
-            'breadcrumb':   breadcrumb
+            'current_user': getattr(g, 'current_user', None),
+            'current_year': datetime.datetime.now().year
         }
 
+    # ─── головна сторінка ──────────────────────────────────────────────
     @app.route('/')
     def index():
-        # Якщо залогований — кидаємо відразу на його дашборд
-        if g.get('current_user'):
-            target = f"{g.current_user.role}.dashboard"
-            return redirect(url_for(target))
-
-        # Інакше — показуємо публічну головну
-        g.breadcrumb = [('Головна', url_for('index'))]
+        # якщо вже залогінені — одразу на свій дашборд
+        if getattr(g, 'current_user', None):
+            return redirect(url_for(f"{g.current_user.role}.dashboard"))
         return render_template('index.html')
 
+    # ─── favicon.ico (щоб уникнути 404 у логах) ────────────────────────
+    @app.route('/favicon.ico')
+    def favicon():
+        path = os.path.join(current_app.root_path, 'static', 'img', 'favicon.ico')
+        if os.path.exists(path):
+            return send_from_directory(
+                os.path.join(current_app.root_path, 'static', 'img'),
+                'favicon.ico',
+                mimetype='image/vnd.microsoft.icon'
+            )
+        return '', 204
+
+    # ─── завершення ────────────────────────────────────────────────────
     return app

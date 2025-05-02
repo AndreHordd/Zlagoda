@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Типи товарів — ZLAGODA{% endblock %}
+{% block content %}
+  <h2>Типи товарів</h2>
+
+  <p>
+    <a href="{{ url_for('cashier.products') }}" class="btn btn-outline-info mb-3">
+      ← Товари у магазині
+    </a>
+  </p>
+
+  <form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label for="category" class="form-label">Фільтр за категорією</label>
+        <select id="category" name="category" class="form-select">
+          <option value="">Всі категорії</option>
+          {% for c in categories %}
+            <option value="{{ c.name }}" {% if c.name == category %}selected{% endif %}>
+              {{ c.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="search" class="form-label">Пошук за назвою</label>
+        <input
+          type="text"
+          id="search"
+          name="search"
+          class="form-control"
+          placeholder="Введіть назву..."
+          value="{{ search or '' }}"
+        >
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Застосувати</button>
+      </div>
+    </div>
+  </form>
+
+  {% if product_types %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          {% for col,label in [
+            ('id','ID'),
+            ('name','Назва'),
+            ('characteristics','Опис'),
+            ('manufacturer','Виробник'),
+            ('category','Категорія')
+          ] %}
+            <th>
+              <a
+                href="{{ url_for('cashier.product_types',
+                                  sort_by=col,
+                                  order=('desc' if sort_by==col and order=='asc' else 'asc'),
+                                  category=category,
+                                  search=search) }}"
+              >
+                {{ label }}
+                {% if sort_by==col %} {{ '↑' if order=='asc' else '↓' }}{% endif %}
+              </a>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in product_types %}
+          <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.characteristics }}</td>
+            <td>{{ p.manufacturer }}</td>
+            <td>{{ p.category }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Немає типів товарів.</p>
+  {% endif %}
+{% endblock %}

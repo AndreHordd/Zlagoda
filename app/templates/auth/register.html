@@ -8,62 +8,166 @@
       <div class="card-body">
         <h3 class="card-title mb-4 text-center">Реєстрація працівника</h3>
         <form method="post" novalidate>
+          <!-- Логін -->
+          <div class="mb-3">
+            <label for="username" class="form-label">Логін</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="form-control"
+              required
+              value="{{ form_data.get('username', '') }}"
+            >
+          </div>
+
+          <!-- Пароль -->
+          <div class="mb-3">
+            <label for="password" class="form-label">Пароль</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-control"
+              required
+            >
+          </div>
+
+          <!-- Дані працівника -->
           <div class="row">
             <div class="col-md-4 mb-3">
-              <label class="form-label">Прізвище</label>
-              <input name="empl_surname" class="form-control" required>
+              <label for="empl_surname" class="form-label">Прізвище</label>
+              <input
+                type="text"
+                id="empl_surname"
+                name="empl_surname"
+                class="form-control"
+                required
+                value="{{ form_data.get('empl_surname', '') }}"
+              >
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label">Ім’я</label>
-              <input name="empl_name" class="form-control" required>
+              <label for="empl_name" class="form-label">Ім’я</label>
+              <input
+                type="text"
+                id="empl_name"
+                name="empl_name"
+                class="form-control"
+                required
+                value="{{ form_data.get('empl_name', '') }}"
+              >
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label">По батькові</label>
-              <input name="empl_patronymic" class="form-control">
+              <label for="empl_patronymic" class="form-label">По батькові</label>
+              <input
+                type="text"
+                id="empl_patronymic"
+                name="empl_patronymic"
+                class="form-control"
+                value="{{ form_data.get('empl_patronymic', '') }}"
+              >
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-4 mb-3">
-              <label class="form-label">Роль</label>
-              <select name="empl_role" class="form-select" required>
-                <option value="manager">Менеджер</option>
-                <option value="cashier">Касир</option>
+              <label for="empl_role" class="form-label">Роль</label>
+              <select
+                id="empl_role"
+                name="empl_role"
+                class="form-select"
+                required
+              >
+                <option value="manager" {% if form_data.get('empl_role')=='manager' %}selected{% endif %}>Менеджер</option>
+                <option value="cashier" {% if form_data.get('empl_role')=='cashier' %}selected{% endif %}>Касир</option>
               </select>
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label">Зарплата</label>
-              <input type="number" name="salary" class="form-control" min="0" step="0.01" required>
+              <label for="salary" class="form-label">Зарплата</label>
+              <input
+                type="number"
+                id="salary"
+                name="salary"
+                class="form-control"
+                min="0"
+                step="0.01"
+                required
+                value="{{ form_data.get('salary', '') }}"
+              >
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label">Дата початку</label>
-              <input type="date" name="date_of_start" class="form-control" required>
+              <label for="date_of_start" class="form-label">Дата початку</label>
+              <input
+                type="date"
+                id="date_of_start"
+                name="date_of_start"
+                class="form-control"
+                required
+                value="{{ form_data.get('date_of_start', '') }}"
+              >
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-4 mb-3">
-              <label class="form-label">Дата народження</label>
-              <input type="date" name="date_of_birth" class="form-control" required>
+              <label for="date_of_birth" class="form-label">Дата народження</label>
+              <input
+                type="date"
+                id="date_of_birth"
+                name="date_of_birth"
+                class="form-control"
+                required
+                value="{{ form_data.get('date_of_birth', '') }}"
+              >
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label">Телефон</label>
-              <input type="tel" name="phone_number" class="form-control" maxlength="13" required>
+              <label for="phone_number" class="form-label">Телефон</label>
+              <input
+                type="tel"
+                id="phone_number"
+                name="phone_number"
+                class="form-control"
+                maxlength="13"
+                required
+                value="{{ form_data.get('phone_number', '') }}"
+              >
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label">Індекс</label>
-              <input name="zip_code" class="form-control" maxlength="9" required>
+              <label for="zip_code" class="form-label">Індекс</label>
+              <input
+                type="text"
+                id="zip_code"
+                name="zip_code"
+                class="form-control"
+                maxlength="9"
+                required
+                value="{{ form_data.get('zip_code', '') }}"
+              >
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label">Місто</label>
-              <input name="city" class="form-control" required>
+              <label for="city" class="form-label">Місто</label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                class="form-control"
+                required
+                value="{{ form_data.get('city', '') }}"
+              >
             </div>
             <div class="col-md-6 mb-3">
-              <label class="form-label">Вулиця</label>
-              <input name="street" class="form-control" required>
+              <label for="street" class="form-label">Вулиця</label>
+              <input
+                type="text"
+                id="street"
+                name="street"
+                class="form-control"
+                required
+                value="{{ form_data.get('street', '') }}"
+              >
             </div>
           </div>
 

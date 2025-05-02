@@ -1,24 +1,34 @@
 {% extends 'base.html' %}
-{% block title %}Нова категорія — ZLAGODA{% endblock %}
+
+{% if mode == 'new' %}
+  {% set page_title = 'Нова категорія' %}
+{% else %}
+  {% set page_title = 'Редагувати категорію' %}
+{% endif %}
+
+{% block title %}{{ page_title }} — ZLAGODA{% endblock %}
+
 {% block content %}
-  <h2>Нова категорія</h2>
-  <form method="post" class="needs-validation" novalidate>
+  <h2>{{ page_title }}</h2>
+
+  <form method="post" class="needs-validation" novalidate style="max-width:420px;">
     <div class="mb-3">
       <label for="name_category" class="form-label">Назва категорії</label>
-      <input id="name_category" name="name_category" class="form-control" required>
+      <input id="name_category"
+             name="name_category"
+             class="form-control"
+             required
+             value="{{ category.name if mode=='edit' else '' }}">
       <div class="invalid-feedback">Вкажіть назву категорії.</div>
     </div>
 
-    <!-- Приклад ієрархії, поки заглушка -->
-    <div class="mb-3">
-      <label for="parent_id" class="form-label">Батьківська категорія</label>
-      <select id="parent_id" name="parent_id" class="form-select">
-        <option value="">— Без батьківської —</option>
-        <option value="1">Напої</option>
-        <option value="2">Снеки</option>
-      </select>
-    </div>
+    <button class="btn btn-primary" type="submit">
+      {{ 'Створити' if mode == 'new' else 'Зберегти' }}
+    </button>
 
-    <button class="btn btn-primary" type="submit">Зберегти</button>
+    <a href="{{ url_for('manager.categories') }}"
+       class="btn btn-outline-secondary ms-2">
+      Скасувати
+    </a>
   </form>
 {% endblock %}

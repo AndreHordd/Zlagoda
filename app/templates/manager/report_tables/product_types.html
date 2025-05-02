@@ -1,0 +1,15 @@
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th><th>Назва</th><th>Опис</th><th>Виробник</th><th>Категорія</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in data %}
+      <tr>
+        <td>{{ p.id }}</td><td>{{ p.name }}</td><td>{{ p.characteristics }}</td>
+        <td>{{ p.manufacturer }}</td><td>{{ p.category }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

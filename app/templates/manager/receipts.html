@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Чеки — ZLAGODA{% endblock %}
+{% set arrow = {'asc':'↑','desc':'↓'} %}
+
+{% block content %}
+  <h2>Чеки</h2>
+
+  <!-- Форма фільтрації -->
+  <form method="get" class="row g-2 align-items-end mb-3">
+    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+    <input type="hidden" name="order"   value="{{ order }}">
+
+    <!-- Вибір касира -->
+    <div class="col-md-3">
+      <label class="form-label">Касир</label>
+      <select name="cashier" class="form-select">
+        <option value="all" {% if not cashier_id %}selected{% endif %}>Усі касири</option>
+        {% for c in cashiers %}
+          <option value="{{ c.id }}" {% if c.id == cashier_id %}selected{% endif %}>
+            {{ c.surname }} {{ c.name }} ({{ c.id }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Дата від -->
+    <div class="col-md-3">
+      <label class="form-label">Від</label>
+      <input type="date" name="from" class="form-control" value="{{ date_from or '' }}">
+    </div>
+
+    <!-- Дата до -->
+    <div class="col-md-3">
+      <label class="form-label">До</label>
+      <input type="date" name="to" class="form-control" value="{{ date_to or '' }}">
+    </div>
+
+    <!-- Кнопки -->
+    <div class="col-auto">
+      <button class="btn btn-primary">Фільтрувати</button>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('manager.receipts') }}" class="btn btn-outline-secondary ms-2">
+        Скинути
+      </a>
+    </div>
+  </form>
+
+  {% macro th(col, label) -%}
+    <th>
+      <a href="{{ url_for('manager.receipts',
+                           cashier=cashier_id or 'all',
+                           from=date_from, to=date_to,
+                           sort_by=col,
+                           order=('desc' if sort_by==col and order=='asc' else 'asc')) }}">
+        {{ label }}{% if sort_by==col %} {{ arrow[order] }}{% endif %}
+      </a>
+    </th>
+  {%- endmacro %}
+
+  {% if receipts %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          {{ th('number',       'Номер') }}
+          {{ th('date',         'Дата') }}
+          {{ th('cashier_name','Касир') }}
+          {{ th('total',        'Сума, ₴') }}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in receipts %}
+          <tr>
+            <td>
+              <a href="{{ url_for('manager.receipt_detail_mgr', check_number=r.number) }}">
+                {{ r.number }}
+              </a>
+            </td>
+            <td>{{ r.date }}</td>
+            <td>{{ r.cashier_name }}</td>
+            <td>{{ '%.2f'|format(r.total) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Чеків за обраний період немає.</p>
+  {% endif %}
+{% endblock %}
