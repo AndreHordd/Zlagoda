@@ -23,6 +23,8 @@ from flask import (
 )
 from psycopg.errors import ForeignKeyViolation
 
+from app.dao.report_dao import categories_sold_by_cashier, category_price_stats, cashiers_every_check_has_category, \
+    categories_without_promos
 from app.dao.sale_dao import delete_sale
 from app.utils.auth import ensure_role
 from app.dao.category_dao import get_all_categories
@@ -836,19 +838,32 @@ def statistics():
 
     products_for_js = get_all_products(sort_by='name', order='asc')
 
+    rows = categories_sold_by_cashier()
+
+
+    price_table = category_price_stats(min_units=50)
+    loyal_cashiers = cashiers_every_check_has_category('Молочні')
+    rare_cats = categories_without_promos(big_stock=100)
+
     return render_template(
         'manager/statistics.html',
         cashiers=cashiers,
         cashier_id=cashier_id,
         period=period,
-        ref_day=ref.isoformat() if period!='all' else '',
+        ref_day=ref.isoformat() if period != 'all' else '',
         d_from=d_from.isoformat() if d_from else '',
-        d_to=d_to.isoformat()     if d_to   else '',
+        d_to=d_to.isoformat() if d_to else '',
         product_input=upc_or_name,
         total_all=total_all,
         total_by_cashier=total_by_cashier,
         qty_sold=qty_sold,
         chosen_product=chosen_product,
-        products=products_for_js
+        products=products_for_js,
+        # ↓↓↓ передаємо у шаблон нові таблиці
+        price_table=price_table[:5],
+        loyal_cashiers=loyal_cashiers[:5],
+        rare_cats=rare_cats,
+        cashier_stats=rows
     )
+
 

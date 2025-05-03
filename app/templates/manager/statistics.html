@@ -89,7 +89,7 @@
       <div class="card-body d-flex flex-column justify-content-center">
         <p class="stat-card__value">
           {% if total_by_cashier is not none %}
-            {{ "%.2f"|format(total_by_cashier) }} ₴
+            {{ '%.2f'|format(total_by_cashier) }} ₴
           {% else %}&mdash;{% endif %}
         </p>
       </div>
@@ -97,19 +97,18 @@
   </div>
 
   <div class="col-md-4">
-    <div class="card stat-card border-success shadow-sm h-100 text-center">
-      <div class="stat-card__title bg-success text-white">
-        Сума продажів усіх касирів
-      </div>
-      <div class="card-body d-flex flex-column justify-content-center">
-        <p class="stat-card__value">
-          {% if total_all is not none %}
-            {{ "%.2f"|format(total_all) }} ₴
-          {% else %}&mdash;{% endif %}
-        </p>
-      </div>
+  <div class="card stat-card border-success shadow-sm h-100 text-center">
+    <div class="stat-card__title bg-success text-white">
+      Сума продажів касирів
+    </div>
+    <div class="card-body d-flex flex-column justify-content-center">
+      <p class="stat-card__value">
+        {{ '%.2f'|format(total_all) }} ₴
+      </p>
     </div>
   </div>
+</div>
+
 
   <div class="col-md-4">
     <div class="card stat-card border-info shadow-sm h-100 text-center">
@@ -126,6 +125,121 @@
     </div>
   </div>
 </div>
+<hr class="my-4">
+
+<!-- ═══════════ ДЕТАЛЬНІ ТАБЛИЦІ ═══════════ -->
+<div class="accordion" id="stats-accordion">
+
+  <!-- ① Продажі по касирах -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="h-cashiers">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#c-cashiers">Категорії та обсяги продажів касирів (весь час)</button>
+    </h2>
+    <div id="c-cashiers" class="accordion-collapse collapse show"
+         data-bs-parent="#stats-accordion">
+      <div class="accordion-body p-0">
+<table class="table table-striped">
+  <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>ID</th>
+      <th>Прізвище Імʼя</th>
+      <th>Категорій</th>
+      <th>Од. продано</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in cashier_stats[:5] %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ r.id_employee }}</td>
+      <td>{{ r.empl_surname }} {{ r.empl_name }}</td>
+      <td>{{ r.num_categories_sold }}</td>
+      <td>{{ r.total_items_sold }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ② Статистика цін у категоріях -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="h-price">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#c-price">Мін/Макс/Середня ціна у «популярних» категоріях</button>
+    </h2>
+    <div id="c-price" class="accordion-collapse collapse"
+         data-bs-parent="#stats-accordion">
+      <div class="accordion-body p-0">
+        <table class="table table-striped m-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th><th>Категорія</th><th>Min</th><th>Max</th>
+              <th>Avg</th><th>Усього шт.</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for r in price_table %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ r.category_name }}</td>
+              <td>{{ '%.2f'|format(r.min_price) }}</td>
+              <td>{{ '%.2f'|format(r.max_price) }}</td>
+              <td>{{ '%.2f'|format(r.avg_price) }}</td>
+              <td>{{ r.total_units }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ Касири, в усіх чеках яких є товар категорії -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="h-loyal">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#c-loyal">Касири, у кожному чеку яких присутні «Молочні» товари</button>
+    </h2>
+    <div id="c-loyal" class="accordion-collapse collapse"
+         data-bs-parent="#stats-accordion">
+      <div class="accordion-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for c in loyal_cashiers %}
+            <li class="list-group-item">{{ c.empl_surname }} {{ c.empl_name }} — {{ c.id_employee }}</li>
+          {% else %}
+            <li class="list-group-item text-muted">Немає таких касирів.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ Категорії без акційних і без великого залишку -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="h-rare">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#c-rare">Категорії без акцій та із малим залишком</button>
+    </h2>
+    <div id="c-rare" class="accordion-collapse collapse"
+         data-bs-parent="#stats-accordion">
+      <div class="accordion-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for cat in rare_cats %}
+            <li class="list-group-item">{{ cat.category_name }}</li>
+          {% else %}
+            <li class="list-group-item text-muted">Усі категорії мають акції або великий stock.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- /accordion -->
 
 <!-- ═══════════ JS ═══════════ -->
 <script>
