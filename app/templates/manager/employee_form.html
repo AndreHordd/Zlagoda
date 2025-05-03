@@ -1,94 +1,92 @@
 {% extends 'base.html' %}
-
-{% if mode == 'new' %}
-  {% set page_title = 'Новий працівник' %}
-{% else %}
-  {% set page_title = 'Редагування працівника' %}
-{% endif %}
-{% block title %}{{ page_title }} — ZLAGODA{% endblock %}
+{% block title %}
+  {% if mode=='new' %}Новий працівник{% else %}Редагувати працівника{% endif %} — ZLAGODA
+{% endblock %}
 
 {% block content %}
-  <h2>{{ page_title }}</h2>
+  <h2>
+    {% if mode=='new' %}Новий працівник{% else %}Редагувати працівника{% endif %}
+  </h2>
 
-  <form method="post" class="needs-validation" novalidate>
-    <div class="row">
-      <div class="col-md-4 mb-3">
+  {# --- Показ flash-повідомлень --- #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ category }}">{% raw %}{{ msg }}{% endraw %}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-4">
         <label class="form-label">Прізвище</label>
-        <input name="surname" class="form-control" required
-               value="{{ employee.surname|default('') }}">
+        <input type="text" name="surname" class="form-control"
+               value="{{ employee.surname or '' }}" required>
       </div>
-      <div class="col-md-4 mb-3">
+      <div class="col-md-4">
         <label class="form-label">Ім’я</label>
-        <input name="name" class="form-control" required
-               value="{{ employee.name|default('') }}">
+        <input type="text" name="name" class="form-control"
+               value="{{ employee.name or '' }}" required>
       </div>
-      <div class="col-md-4 mb-3">
+      <div class="col-md-4">
         <label class="form-label">По батькові</label>
-        <input name="patronymic" class="form-control"
-               value="{{ employee.patronymic|default('') }}">
+        <input type="text" name="patronymic" class="form-control"
+               value="{{ employee.patronymic or '' }}">
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col-md-3 mb-3">
-        <label class="form-label">Посада</label>
+      <div class="col-md-3">
+        <label class="form-label">Роль</label>
         <select name="role" class="form-select" required>
-          <option value="manager"
-                  {% if employee.role=='manager' %}selected{% endif %}>
-            Менеджер
-          </option>
-          <option value="cashier"
-                  {% if employee.role=='cashier' %}selected{% endif %}>
-            Касир
-          </option>
+          <option value="cashier" {% if employee.role=='cashier' %}selected{% endif %}>cashier</option>
+          <option value="manager" {% if employee.role=='manager' %}selected{% endif %}>manager</option>
         </select>
       </div>
-      <div class="col-md-3 mb-3">
+      <div class="col-md-3">
         <label class="form-label">Зарплата</label>
-        <input name="salary" type="number" step="0.01" min="0"
-               class="form-control" required
-               value="{{ employee.salary|default('') }}">
+        <input type="number" step="0.01" name="salary" class="form-control"
+               value="{{ employee.salary or '' }}" required>
       </div>
-      <div class="col-md-3 mb-3">
+      <div class="col-md-3">
         <label class="form-label">Дата народження</label>
-        <input name="dob" type="date" class="form-control" required
-               value="{{ employee.date_of_birth|default('') }}">
+        <input type="date" name="dob" class="form-control"
+               value="{{ employee.date_of_birth or '' }}" required>
       </div>
-      <div class="col-md-3 mb-3">
-        <label class="form-label">Працює з</label>
-        <input name="start_date" type="date" class="form-control" required
-               value="{{ employee.date_of_start|default('') }}">
+      <div class="col-md-3">
+        <label class="form-label">Початок роботи</label>
+        <input type="date" name="start_date" class="form-control"
+               value="{{ employee.date_of_start or '' }}" required>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col-md-4 mb-3">
+      <div class="col-md-4">
         <label class="form-label">Телефон</label>
-        <input name="phone" class="form-control" required
-               value="{{ employee.phone_number|default('') }}">
+        <input type="text" name="phone" class="form-control"
+               value="{{ employee.phone_number or '' }}">
       </div>
-      <div class="col-md-4 mb-3">
+      <div class="col-md-4">
         <label class="form-label">Місто</label>
-        <input name="city" class="form-control" required
-               value="{{ employee.city|default('') }}">
+        <input type="text" name="city" class="form-control"
+               value="{{ employee.city or '' }}">
       </div>
-      <div class="col-md-4 mb-3">
+      <div class="col-md-4">
         <label class="form-label">Вулиця</label>
-        <input name="street" class="form-control" required
-               value="{{ employee.street|default('') }}">
+        <input type="text" name="street" class="form-control"
+               value="{{ employee.street or '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">ZIP-код</label>
+        <input type="text" name="zip_code" class="form-control"
+               value="{{ employee.zip_code or '' }}">
       </div>
     </div>
 
-    <div class="mb-3">
-      <label class="form-label">Індекс</label>
-      <input name="zip_code" class="form-control" required
-             value="{{ employee.zip_code|default('') }}">
+    <div class="mt-4">
+      <button type="submit" class="btn btn-success">
+        {% if mode=='new' %}Створити{% else %}Зберегти{% endif %}
+      </button>
+      <a href="{{ url_for('manager.employees') }}" class="btn btn-secondary">
+        Скасувати
+      </a>
     </div>
-
-    <button class="btn btn-success">
-      {{ 'Створити' if mode=='new' else 'Зберегти' }}
-    </button>
-    <a href="{{ url_for('manager.employees') }}"
-       class="btn btn-outline-secondary ms-2">Скасувати</a>
   </form>
 {% endblock %}

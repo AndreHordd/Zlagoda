@@ -51,13 +51,6 @@
                                   card_number=c.card_number) }}">
                 Редагувати
               </a>
-              <form method="post"
-                    action="{{ url_for('cashier.cashier_cards.delete_customer',
-                                       card_number=c.card_number) }}"
-                    style="display:inline;"
-                    onsubmit="return confirm('Видалити картку?');">
-                <button class="btn btn-sm btn-outline-danger">✕</button>
-              </form>
             </td>
           </tr>
         {% endfor %}

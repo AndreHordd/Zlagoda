@@ -3,40 +3,45 @@
 {% set arrow = {'asc':'↑','desc':'↓'} %}
 
 {% block content %}
-  <h2>Постійні клієнти</h2>
+  <h2 class="mb-4">Постійні клієнти</h2>
 
-  <!-- Форма фільтрів -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <p>
+    <a href="{{ url_for('manager.new_customer') }}"
+       class="btn btn-success mb-3">+ Додати клієнта</a>
+  </p>
+
   <form method="get" class="row g-2 align-items-end mb-3">
     <input type="hidden" name="sort_by" value="{{ sort_by }}">
     <input type="hidden" name="order"   value="{{ order }}">
 
-    <!-- Пошук за прізвищем -->
-    <div class="col-md-4">
+    <div class="col-md-3">
+      <label class="form-label">Мінімальна знижка %</label>
+      <input type="number" name="min_percent" min="0" max="100" class="form-control"
+             value="{{ min_percent if min_percent is not none else '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Максимальна знижка %</label>
+      <input type="number" name="max_percent" min="0" max="100" class="form-control"
+             value="{{ max_percent if max_percent is not none else '' }}">
+    </div>
+    <div class="col-md-3">
       <label class="form-label">Пошук за прізвищем</label>
       <input name="search" class="form-control"
              placeholder="Введіть прізвище…"
              value="{{ search_filter or '' }}">
     </div>
-
-    <!-- Фільтр «Знижка» -->
-    <div class="col-md-3">
-      <label class="form-label">Знижка</label>
-      <select name="discount" class="form-select">
-        <option value=""  {% if discount_filter==None %}selected{% endif %}>Усі</option>
-        <option value="1" {% if discount_filter=='1' %}selected{% endif %}>Є знижка</option>
-        <option value="0" {% if discount_filter=='0' %}selected{% endif %}>Без знижки</option>
-      </select>
-    </div>
-
-    <!-- Кнопки -->
     <div class="col-auto">
       <button class="btn btn-primary">Застосувати</button>
-    </div>
-    <div class="col-auto">
       <a href="{{ url_for('manager.customers') }}"
-         class="btn btn-outline-secondary ms-2">
-        Скинути
-      </a>
+         class="btn btn-outline-secondary ms-2">Скинути</a>
     </div>
   </form>
 
@@ -45,7 +50,8 @@
       <a href="{{ url_for('manager.customers',
                            sort_by=col,
                            order=('desc' if sort_by==col and order=='asc' else 'asc'),
-                           discount=discount_filter,
+                           min_percent=min_percent,
+                           max_percent=max_percent,
                            search=search_filter) }}">
         {{ label }}
         {% if sort_by==col %} {{ arrow[order] }}{% endif %}
@@ -66,6 +72,7 @@
           {{ th('street',     'Вулиця') }}
           {{ th('zip_code',   'Індекс') }}
           {{ th('percent',    'Знижка %') }}
+          <th>Дії</th>
         </tr>
       </thead>
       <tbody>
@@ -80,6 +87,16 @@
             <td>{{ c.street or '' }}</td>
             <td>{{ c.zip_code or '' }}</td>
             <td>{{ c.percent }}</td>
+            <td class="text-nowrap">
+              <a href="{{ url_for('manager.edit_customer', card_number=c.card_number) }}"
+                 class="btn btn-sm btn-outline-secondary">Редагувати</a>
+              <form method="post"
+                    action="{{ url_for('manager.delete_customer', card_number=c.card_number) }}"
+                    class="d-inline"
+                    onsubmit="return confirm('Видалити клієнта?');">
+                <button class="btn btn-sm btn-outline-danger">✕</button>
+              </form>
+            </td>
           </tr>
         {% endfor %}
       </tbody>

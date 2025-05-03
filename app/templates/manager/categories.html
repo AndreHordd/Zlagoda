@@ -1,11 +1,21 @@
 {% extends 'base.html' %}
 {% block title %}Категорії — ZLAGODA{% endblock %}
+
 {% set arrow = {'asc':'↑','desc':'↓'} %}
 
 {% block content %}
   <h2>Категорії</h2>
 
-  {# ───── Форма швидкого додавання категорії ───── #}
+  {# ── Flash-повідомлення ── #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} mt-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {# ── Форма швидкого додавання категорії ── #}
   <form method="post" class="row g-2 align-items-end mb-4"
         action="{{ url_for('manager.categories',
                            sort_by=sort_by, order=order) }}">

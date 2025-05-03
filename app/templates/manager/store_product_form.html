@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode=='new' %}Новий товар у магазині{% else %}Редагувати товар{% endif %} — ZLAGODA{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">{% if mode=='new' %}Новий товар у магазині{% else %}Редагувати товар{% endif %}</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} mt-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" class="mb-5">
+    <div class="row g-3">
+      {% if mode=='edit' %}
+        <div class="col-md-4">
+          <label class="form-label">UPC</label>
+          <input class="form-control" readonly value="{{ product.upc }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">UPC промо</label>
+          <input class="form-control" readonly value="{{ product.upc_prom }}">
+        </div>
+      {% endif %}
+
+      <div class="col-md-4">
+        <label for="product_id" class="form-label">Тип товару</label>
+        <select id="product_id" name="product_id" class="form-select" required>
+          <option value="">--- оберіть ---</option>
+          {% for t in product_types %}
+            <option value="{{ t.id }}"
+              {% if product.product_id==t.id %}selected{% endif %}>
+              {{ t.name }} ({{ t.category }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label for="price" class="form-label">Ціна</label>
+        <input id="price" name="price" type="number" step="0.01"
+               class="form-control" required
+               value="{{ product.price|default('') }}">
+      </div>
+
+      <div class="col-md-4">
+        <label for="quantity" class="form-label">Кількість</label>
+        <input id="quantity" name="quantity" type="number"
+               class="form-control" required
+               value="{{ product.quantity|default('') }}">
+      </div>
+
+      <div class="col-md-4">
+        <label for="expiry_date" class="form-label">Дата закінчення</label>
+        <input id="expiry_date" name="expiry_date" type="date"
+               class="form-control" required
+               value="{{ product.expiry_date|default('') }}">
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-4">
+      {% if mode=='new' %}Створити{% else %}Зберегти{% endif %}
+    </button>
+    <a href="{{ url_for('manager.store_products') }}"
+       class="btn btn-outline-secondary mt-4 ms-2">Скасувати</a>
+  </form>
+{% endblock %}

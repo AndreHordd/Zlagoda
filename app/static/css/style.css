@@ -151,3 +151,77 @@ datalist option:last-child{ border-bottom:none; }
   white-space: nowrap;
   padding: .5rem .75rem;
 }
+/* Зробити sidebar фіксованим під navbar */
+body.logged-in .d-flex > nav#sidebar {
+  position: fixed;
+  top: 56px;               /* висота navbar */
+  left: 0;
+  width: 240px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  z-index: 100;            /* щоб був вище контенту */
+}
+
+/* Додати відступ зліва для основного контенту */
+body.logged-in main {
+  margin-left: 240px !important;
+  padding-top: 1rem;
+}
+
+/* Злегка підняти navbar зверху */
+nav.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 200;
+}
+
+/* Щоб footer не заходив на контент */
+footer {
+  margin-left: 240px;
+}
+/* 1. Фіксуємо верхній navbar */
+nav.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1030;
+}
+
+/* 2. Фіксуємо sidebar та задаємо його розміри */
+nav#sidebar {
+  position: fixed;
+  top: 56px;               /* висота navbar */
+  left: 0;
+  bottom: 0;
+  width: 240px;
+  overflow-y: auto;
+  background: #fff;
+  z-index: 1020;
+}
+
+/* 3. Додаємо відступи основному контенту */
+.main-content {
+  margin-top: 56px;        /* щоб не ховався під navbar */
+  margin-left: 240px;      /* щоб не ховався під sidebar */
+  padding: 1.5rem;
+}
+
+/* 4. Щоб footer теж зміщувався під sidebar */
+footer {
+  margin-left: 240px;
+}
+/* Зсув контенту униз на висоту navbar (56px за замовчуванням Bootstrap) */
+body > .container-fluid {
+  margin-top: 56px !important;
+}
+/* Відсуваємо весь основний контент під navbar висотою приблизно 56px */
+#content {
+  margin-top: 56px;
+}
+/* Замість nowrap / ellipsis */
+td input {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}

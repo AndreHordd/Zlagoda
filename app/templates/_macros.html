@@ -1,15 +1,25 @@
-{% macro sort_th(endpoint, col, label, current_sort, current_order, **params) -%}
-  {# endpoint → ім'я маршруту; params → решта GET-параметрів #}
-  {%- set new_order = 'asc' if current_sort != col else ('desc' if current_order=='asc' else 'asc') -%}
+{# templates/_macros.html #}
+{% macro sort_th(endpoint, col, label,
+                 current_sort, current_order,
+                 category=None, promo=None,
+                 field=None, search=None) -%}
+  {%- if current_sort == col and current_order == 'asc' -%}
+    {%- set next_order = 'desc' -%}
+  {%- else -%}
+    {%- set next_order = 'asc' -%}
+  {%- endif -%}
   <th>
-    <a class="sort-btn"
-       href="{{ url_for(endpoint,
+    <a href="{{ url_for(endpoint,
                         sort_by=col,
-                        order=new_order,
-                        **params) }}">
+                        order=next_order,
+                        category=category,
+                        promo=promo,
+                        field=field,
+                        search=search) }}"
+       class="btn btn-link btn-sm p-0">
       {{ label }}
       {%- if current_sort == col -%}
-        <i class="bi {{ 'bi-caret-up-fill' if current_order=='asc' else 'bi-caret-down-fill' }}"></i>
+        {{ '↑' if current_order == 'asc' else '↓' }}
       {%- endif -%}
     </a>
   </th>

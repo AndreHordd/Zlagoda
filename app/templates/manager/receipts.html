@@ -1,89 +1,111 @@
 {% extends 'base.html' %}
 {% block title %}Чеки — ZLAGODA{% endblock %}
 {% set arrow = {'asc':'↑','desc':'↓'} %}
-
 {% block content %}
-  <h2>Чеки</h2>
+<h2 class="mb-4">Чеки</h2>
 
-  <!-- Форма фільтрації -->
-  <form method="get" class="row g-2 align-items-end mb-3">
-    <input type="hidden" name="sort_by" value="{{ sort_by }}">
-    <input type="hidden" name="order"   value="{{ order }}">
-
-    <!-- Вибір касира -->
+{# Форма фільтрів чеків #}
+<form method="get" class="mb-4">
+  <div class="row g-3 align-items-end">
     <div class="col-md-3">
-      <label class="form-label">Касир</label>
-      <select name="cashier" class="form-select">
-        <option value="all" {% if not cashier_id %}selected{% endif %}>Усі касири</option>
-        {% for c in cashiers %}
-          <option value="{{ c.id }}" {% if c.id == cashier_id %}selected{% endif %}>
-            {{ c.surname }} {{ c.name }} ({{ c.id }})
-          </option>
-        {% endfor %}
+      <label class="form-label">Період</label>
+      <select name="period" id="period-select" class="form-select">
+        <option value="day"   {% if period=='day'   %}selected{% endif %}>За день</option>
+        <option value="7d"    {% if period=='7d'    %}selected{% endif %}>7 днів</option>
+        <option value="month" {% if period=='month' %}selected{% endif %}>Місяць</option>
+        <option value="year"  {% if period=='year'  %}selected{% endif %}>Рік</option>
+        <option value="all"   {% if period=='all'   %}selected{% endif %}>Весь час</option>
+        <option value="custom"{% if period=='custom'%}selected{% endif %}>Свій період</option>
       </select>
     </div>
-
-    <!-- Дата від -->
-    <div class="col-md-3">
+    <div class="col-md-3" id="from-col">
       <label class="form-label">Від</label>
-      <input type="date" name="from" class="form-control" value="{{ date_from or '' }}">
+      <input type="date" name="from" class="form-control" value="{{ d_from }}">
     </div>
-
-    <!-- Дата до -->
-    <div class="col-md-3">
+    <div class="col-md-3" id="to-col">
       <label class="form-label">До</label>
-      <input type="date" name="to" class="form-control" value="{{ date_to or '' }}">
+      <input type="date" name="to"   class="form-control" value="{{ d_to }}">
     </div>
-
-    <!-- Кнопки -->
     <div class="col-auto">
       <button class="btn btn-primary">Фільтрувати</button>
+      <a href="{{ url_for('manager.receipts') }}" class="btn btn-secondary ms-2">Скинути</a>
     </div>
-    <div class="col-auto">
-      <a href="{{ url_for('manager.receipts') }}" class="btn btn-outline-secondary ms-2">
-        Скинути
-      </a>
-    </div>
-  </form>
+  </div>
+</form>
 
-  {% macro th(col, label) -%}
-    <th>
-      <a href="{{ url_for('manager.receipts',
-                           cashier=cashier_id or 'all',
-                           from=date_from, to=date_to,
-                           sort_by=col,
-                           order=('desc' if sort_by==col and order=='asc' else 'asc')) }}">
-        {{ label }}{% if sort_by==col %} {{ arrow[order] }}{% endif %}
-      </a>
-    </th>
-  {%- endmacro %}
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const sel = document.getElementById('period-select'),
+        from = document.getElementById('from-col'),
+        to   = document.getElementById('to-col');
+  function toggle(){
+    if(sel.value==='custom'){
+      from.classList.remove('d-none'); to.classList.remove('d-none');
+    } else {
+      from.classList.add('d-none'); to.classList.add('d-none');
+    }
+  }
+  sel.addEventListener('change', toggle);
+  toggle();
+});
+</script>
 
-  {% if receipts %}
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          {{ th('number',       'Номер') }}
-          {{ th('date',         'Дата') }}
-          {{ th('cashier_name','Касир') }}
-          {{ th('total',        'Сума, ₴') }}
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in receipts %}
-          <tr>
-            <td>
-              <a href="{{ url_for('manager.receipt_detail_mgr', check_number=r.number) }}">
-                {{ r.number }}
-              </a>
-            </td>
-            <td>{{ r.date }}</td>
-            <td>{{ r.cashier_name }}</td>
-            <td>{{ '%.2f'|format(r.total) }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>Чеків за обраний період немає.</p>
-  {% endif %}
+{% if receipts %}
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>
+        <a href="{{ url_for('manager.receipts',
+          sort_by='number', order=('desc' if sort_by=='number' and order=='asc' else 'asc'),
+          period=period, from=d_from, to=d_to) }}">
+          Номер {% if sort_by=='number'%}{{ arrow[order] }}{% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="{{ url_for('manager.receipts',
+          sort_by='date', order=('desc' if sort_by=='date' and order=='asc' else 'asc'),
+          period=period, from=d_from, to=d_to) }}">
+          Дата {% if sort_by=='date'%}{{ arrow[order] }}{% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="{{ url_for('manager.receipts',
+          sort_by='total', order=('desc' if sort_by=='total' and order=='asc' else 'asc'),
+          period=period, from=d_from, to=d_to) }}">
+          Сума, ₴ {% if sort_by=='total'%}{{ arrow[order] }}{% endif %}
+        </a>
+      </th>
+      <th>Дії</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in receipts %}
+    <tr>
+      <td>
+        <a href="{{ url_for('manager.receipt_detail_mgr', check_number=r.number) }}">
+          {{ r.number }}
+        </a>
+      </td>
+      <td>{{ r.date }}</td>
+      <td>{{ '%.2f'|format(r.total) }}</td>
+      <td class="text-nowrap">
+      <form method="post"
+            action="{{ url_for('manager.delete_receipt', check_number=r.number) }}"
+            onsubmit="return confirm('Видалити чек {{ r.number }}?');"
+            class="d-inline">
+        <input type="hidden" name="period"   value="{{ period }}">
+        <input type="hidden" name="from"     value="{{ d_from }}">
+        <input type="hidden" name="to"       value="{{ d_to }}">
+        <input type="hidden" name="sort_by"  value="{{ sort_by }}">
+        <input type="hidden" name="order"    value="{{ order }}">
+        <button class="btn btn-sm btn-outline-danger">✕</button>
+      </form>
+    </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p>Чеків за обраний період немає.</p>
+{% endif %}
 {% endblock %}

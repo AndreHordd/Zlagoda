@@ -445,3 +445,17 @@ def get_quantity_sold_period(upc: str,
     qty = cur.fetchone()[0]
     close_db(conn)
     return qty
+
+def delete_check(check_number: str) -> bool:
+    """
+    Видаляє чек із таблиці "Check" (іменований приводу ON DELETE CASCADE
+    видалить спочатку всі рядки в Sale з цим check_number).
+    Повертає True, якщо чек успішно видалено.
+    """
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('DELETE FROM "check" WHERE check_number=%s', (check_number,))
+    conn.commit()
+    deleted = cur.rowcount > 0
+    close_db(conn)
+    return deleted

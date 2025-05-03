@@ -1,14 +1,15 @@
 from markupsafe import Markup
 from flask import (
+    abort,
     render_template, request, redirect,
     url_for, flash, session
 )
-from app.dao.check_dao import create_check, get_check_details
-from app.dao.product_dao         import get_all_products
-from app.dao.customer_card_dao   import get_all_cards
-from .routes                     import cashier_bp
+from app.dao.check_dao       import create_check, get_check_details
+from app.dao.product_dao     import get_all_products
+from app.dao.customer_card_dao import get_all_cards
+from .routes                 import cashier_bp
 
-# ───────────────────── НОВИЙ маршрут ─────────────────────
+# ───────────────────── Деталі чека ─────────────────────
 @cashier_bp.route('/receipt/<check_number>')
 def receipt_detail(check_number):
     details = get_check_details(check_number)
@@ -17,8 +18,10 @@ def receipt_detail(check_number):
     return render_template('cashier/receipt_detail.html', **details)
 
 
+# ──────────────── Створення нового чека ────────────────
 @cashier_bp.route('/create_receipt', methods=('GET', 'POST'))
 def create_receipt():
+    # Завжди підтягуємо список товарів та карток
     products = get_all_products(sort_by='name', order='asc')
     cards    = get_all_cards()
 
@@ -27,12 +30,16 @@ def create_receipt():
         flash('Увійдіть заново, щоб створити чек.', 'error')
         return redirect(url_for('auth.login'))
 
-    # ── зберегти введені значення, якщо POST з помилкою ──────────────────
+    # Якщо це POST-запит, зберігаємо вже введені поля в form_data
     form_data = request.form.to_dict() if request.method == 'POST' else {}
-    indices   = sorted({k.split('_')[1] for k in form_data if k.startswith('upc_')}, key=int) or [1]
+    # indices — це всі порядкові номери рядків upc_1, upc_2, …
+    indices = sorted(
+        {k.split('_')[1] for k in form_data if k.startswith('upc_')},
+        key=int
+    ) or ['1']
 
     if request.method == 'POST':
-        # зібрати коректні позиції
+        # Збираємо з форми ті рядки, де є і UPC, і позитивна кількість
         sales = []
         for idx in indices:
             upc = form_data.get(f'upc_{idx}', '').strip()
@@ -45,13 +52,16 @@ def create_receipt():
 
         if not sales:
             flash('Додайте хоча б один коректний товар.', 'error')
-            return render_template('cashier/create_receipt.html',
-                                   products=products, cards=cards,
-                                   form_data=form_data, indices=indices)
+            return render_template(
+                'cashier/create_receipt.html',
+                products=products, cards=cards,
+                form_data=form_data, indices=indices
+            )
 
         try:
+            # Створюємо чек і отримуємо його номер
             chk_no = create_check(
-                None,
+                None,               # номер генерується всередині DAO
                 employee_id,
                 form_data.get('card_number') or None,
                 sales
@@ -64,15 +74,15 @@ def create_receipt():
             return redirect(url_for('cashier.my_receipts'))
 
         except ValueError as e:
-            # показати всі зібрані помилки, при цьому введені дані залишаються
+            # Помилка перевірки (наприклад, недостатньо товару)
             flash(Markup(
-                f'<div class="alert alert-danger">'
-                f'{e}'
-                f'</div>'
+                f'<div class="alert alert-danger">{e}</div>'
             ), 'message')
-            return render_template('cashier/create_receipt.html',
-                                   products=products, cards=cards,
-                                   form_data=form_data, indices=indices)
+            return render_template(
+                'cashier/create_receipt.html',
+                products=products, cards=cards,
+                form_data=form_data, indices=indices
+            )
 
         except Exception as e:
             flash(Markup(
@@ -80,10 +90,15 @@ def create_receipt():
                 f'Невідома помилка: {e}'
                 f'</div>'
             ), 'message')
-            return render_template('cashier/create_receipt.html',
-                                   products=products, cards=cards,
-                                   form_data=form_data, indices=indices)
+            return render_template(
+                'cashier/create_receipt.html',
+                products=products, cards=cards,
+                form_data=form_data, indices=indices
+            )
 
-    return render_template('cashier/create_receipt.html',
-                           products=products, cards=cards,
-                           form_data=form_data, indices=indices)
+    # GET: просто виводимо порожню форму з одним рядком
+    return render_template(
+        'cashier/create_receipt.html',
+        products=products, cards=cards,
+        form_data=form_data, indices=indices
+    )

@@ -5,64 +5,81 @@
   <h2>Мої чеки</h2>
 
   <!-- Форма фільтра -->
-  <form method="get" class="row g-2 align-items-end mb-3">
-    <input type="hidden" name="sort_by" value="{{ sort_by }}">
-    <input type="hidden" name="order"   value="{{ order }}">
+  <form method="get" class="mb-4">
+  <div class="row g-3 align-items-end">
     <div class="col-md-3">
+      <label class="form-label">Період</label>
+      <select name="period" id="period-select" class="form-select">
+        <option value="day"   {% if period=='day'   %}selected{% endif %}>За день</option>
+        <option value="7d"    {% if period=='7d'    %}selected{% endif %}>7 днів</option>
+        <option value="month" {% if period=='month' %}selected{% endif %}>Місяць</option>
+        <option value="year"  {% if period=='year'  %}selected{% endif %}>Рік</option>
+        <option value="all"   {% if period=='all'   %}selected{% endif %}>Весь час</option>
+        <option value="custom"{% if period=='custom'%}selected{% endif %}>Свій період</option>
+      </select>
+    </div>
+
+    <div class="col-md-3" id="from-col">
       <label class="form-label">Від</label>
-      <input type="date" name="from" class="form-control"
-             value="{{ date_from or '' }}">
+      <input type="date" name="from" class="form-control" value="{{ date_from }}">
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3" id="to-col">
       <label class="form-label">До</label>
-      <input type="date" name="to" class="form-control"
-             value="{{ date_to or '' }}">
+      <input type="date" name="to"   class="form-control" value="{{ date_to }}">
     </div>
+
     <div class="col-auto">
       <button class="btn btn-primary">Фільтрувати</button>
     </div>
-    <div class="col-auto">
-      <a class="btn btn-outline-secondary"
-         href="{{ url_for('cashier.my_receipts',
-                          today=1,
-                          sort_by=sort_by,
-                          order=order) }}">
-        Сьогодні
-      </a>
-    </div>
-    <div class="col-auto">
-      <a class="btn btn-outline-secondary"
-         href="{{ url_for('cashier.my_receipts',
-                          sort_by=sort_by,
-                          order=order) }}">
-        Скинути
-      </a>
-    </div>
-  </form>
+  </div>
+</form>
+
+<script>
+  // точно як у statistics: ховаємо/показуємо поля
+  document.addEventListener('DOMContentLoaded',()=>{
+    const sel    = document.getElementById('period-select');
+    const fromEl = document.getElementById('from-col');
+    const toEl   = document.getElementById('to-col');
+    function toggle(){
+      if(sel.value==='custom'){
+        fromEl.classList.remove('d-none'); toEl.classList.remove('d-none');
+      } else if(sel.value==='all'){
+        fromEl.classList.add('d-none'); toEl.classList.add('d-none');
+      } else {
+        fromEl.classList.add('d-none'); toEl.classList.add('d-none');
+      }
+    }
+    sel.addEventListener('change',toggle);
+    toggle();
+  });
+</script>
 
   {% if receipts %}
     <table class="table table-striped">
       <thead>
-        <tr>
-          {% for col,label in [
-            ('number','Номер'),
-            ('date','Дата'),
-            ('total','Сума, ₴')
-          ] %}
-            <th>
-              <a href="{{ url_for('cashier.my_receipts',
-                                   sort_by=col,
-                                   order=('desc' if sort_by==col and order=='asc' else 'asc'),
-                                   from=date_from, to=date_to) }}">
-                {{ label }}
-                {% if sort_by == col %}
-                  {{ arrow[order] }}
-                {% endif %}
-              </a>
-            </th>
-          {% endfor %}
-        </tr>
-      </thead>
+  <tr>
+    {% for col,label in [
+      ('number','Номер'),
+      ('date','Дата'),
+      ('total','Сума, ₴')
+    ] %}
+      <th>
+        <a href="{{ url_for('cashier.my_receipts',
+                             period=period,
+                             sort_by=col,
+                             order=('desc' if sort_by==col and order=='asc' else 'asc'),
+                             from=date_from,
+                             to=date_to) }}">
+          {{ label }}
+          {% if sort_by == col %}
+            {{ arrow[order] }}
+          {% endif %}
+        </a>
+      </th>
+    {% endfor %}
+  </tr>
+</thead>
+
       <tbody>
         {% for r in receipts %}
           <tr>

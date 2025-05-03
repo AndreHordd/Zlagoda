@@ -22,7 +22,7 @@
             data-percent="{{ c.percent }}"
             {% if form_data.card_number == c.number %}selected{% endif %}
           >
-            {{ c.name }} (-{{ c.percent }} %)
+            {{ c.name }} (−{{ c.percent }} %)
           </option>
         {% endfor %}
       </select>
@@ -36,6 +36,7 @@
         <div class="col-md-4 position-relative">
           <input
             type="text"
+            name="name_{{ idx }}"
             class="form-control product-search"
             placeholder="Почніть вводити назву…"
             autocomplete="off"
@@ -64,15 +65,18 @@
           </div>
           <div class="invalid-feedback">Виберіть товар.</div>
         </div>
+
         {# ціна #}
         <div class="col-md-2">
           <input
             type="text"
+            name="price_{{ idx }}"
             readonly
             class="form-control price-display"
             value="{{ form_data['price_' ~ idx]|default('') }}"
           >
         </div>
+
         {# кількість #}
         <div class="col-md-2">
           <input
@@ -85,6 +89,7 @@
           >
           <div class="invalid-feedback">Вкажіть кількість.</div>
         </div>
+
         {# підсумок рядка #}
         <div class="col-md-2">
           <input
@@ -93,7 +98,8 @@
             class="form-control line-total"
           >
         </div>
-        {# кнопка × завжди присутня #}
+
+        {# кнопка × #}
         <div class="col-md-2">
           <button type="button" class="btn btn-outline-danger btn-remove">×</button>
         </div>
@@ -114,7 +120,7 @@
     </div>
     <div class="row g-2">
       <div class="col-md-3"><strong>Знижка:</strong></div>
-      <div class="col-md-3">- <span id="discount-amount">0.00</span> ₴</div>
+      <div class="col-md-3">− <span id="discount-amount">0.00</span> ₴</div>
     </div>
     <div class="row g-2">
       <div class="col-md-3"><strong>VAT (20 %):</strong></div>
@@ -131,14 +137,10 @@
   {# ───────── JS ───────── #}
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-
-      // найбільший поточний індекс → додаємо наступний
       let nextIndex = Math.max(...{{ indices|map('int')|list }}) + 1;
 
-      /* ───────── перерахунок підсумків ───────── */
       function recalc() {
         let subtotal = 0;
-
         document.querySelectorAll('.item-row').forEach(row => {
           const price = parseFloat(row.querySelector('.price-display').value) || 0;
           const qty   = parseInt(row.querySelector('.qty-input').value) || 0;
@@ -146,7 +148,6 @@
           row.querySelector('.line-total').value = line.toFixed(2);
           subtotal += line;
         });
-
         document.getElementById('subtotal').textContent = subtotal.toFixed(2);
 
         const percent = parseInt(
@@ -162,7 +163,6 @@
         document.getElementById('total').textContent = (taxable + vat).toFixed(2);
       }
 
-      /* ───────── підключити обробники до рядка ───────── */
       function attachRowEvents(row) {
         const searchInput = row.querySelector('.product-search');
         const upcInput    = row.querySelector('.upc-input');
@@ -171,14 +171,13 @@
         const list        = row.querySelector('.product-list');
         const buttons     = Array.from(list.children);
 
-        // фільтр списку
         const filter = () => {
           const term = searchInput.value.trim().toLowerCase();
           let any = false;
           buttons.forEach(btn => {
-            const visible = btn.dataset.name.toLowerCase().includes(term);
-            btn.style.display = visible ? '' : 'none';
-            if (visible) any = true;
+            const ok = btn.dataset.name.toLowerCase().includes(term);
+            btn.style.display = ok ? '' : 'none';
+            if (ok) any = true;
           });
           list.style.display = any ? 'block' : 'none';
         };
@@ -190,7 +189,6 @@
             list.style.display = 'none';
         });
 
-        // вибір товару
         buttons.forEach(btn => btn.addEventListener('click', () => {
           searchInput.value = btn.dataset.name;
           upcInput.value    = btn.dataset.upc;
@@ -202,13 +200,11 @@
         qtyInput.addEventListener('input', recalc);
         document.getElementById('card_number').addEventListener('change', recalc);
 
-        // кнопка ×
         row.querySelector('.btn-remove').addEventListener('click', () => {
           const rows = document.querySelectorAll('.item-row');
           if (rows.length > 1) {
             row.remove();
           } else {
-            // якщо рядок один – тільки очищаємо поля
             searchInput.value = '';
             upcInput.value    = '';
             priceInput.value  = '';
@@ -219,11 +215,9 @@
         });
       }
 
-      // підключити існуючі рядки
       document.querySelectorAll('.item-row').forEach(attachRowEvents);
       recalc();
 
-      /* ───────── додати новий рядок ───────── */
       document.getElementById('add-item').addEventListener('click', () => {
         const template = document.querySelector('.item-row');
         const clone    = template.cloneNode(true);
@@ -233,16 +227,9 @@
         clone.querySelectorAll('[name]').forEach(el => {
           const base = el.getAttribute('name').split('_')[0];
           el.setAttribute('name', `${base}_${newIdx}`);
-
-          // за замовчуванням кількість = 1, решта поля порожні
-          if (base === 'qty') {
-            el.value = '1';
-          } else {
-            el.value = '';
-          }
+          if (base === 'qty') el.value = '1'; else el.value = '';
         });
 
-        // окремо очищаємо відображувані поля, щоб не перезаписати qty
         clone.querySelector('.product-search').value = '';
         clone.querySelector('.upc-input').value      = '';
         clone.querySelector('.price-display').value  = '';

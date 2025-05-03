@@ -1,31 +1,64 @@
 {% extends 'base.html' %}
-{% block title %}Новий товар — ZLAGODA{% endblock %}
+
+{% block title %}
+  {% if mode=='new' %}
+    Новий тип товару
+  {% else %}
+    Редагувати тип товару
+  {% endif %} — ZLAGODA
+{% endblock %}
+
 {% block content %}
-  <h2>Новий товар</h2>
-  <form method="post" class="needs-validation" novalidate>
+  <h2 class="mb-4">
+    {% if mode=='new' %}Новий тип товару{% else %}Редагувати тип товару{% endif %}
+  </h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="post">
     <div class="mb-3">
-      <label for="name" class="form-label">Назва</label>
-      <input id="name" name="name" class="form-control" required>
-      <div class="invalid-feedback">Вкажіть назву продукту.</div>
+      <label for="name" class="form-label">Назва типу</label>
+      <input
+        id="name"
+        type="text"
+        name="name"
+        class="form-control"
+        value="{{ product_type.name|default('') }}"
+        required
+      >
     </div>
 
     <div class="mb-3">
-      <label for="category_id" class="form-label">Категорія</label>
-      <select id="category_id" name="category_id" class="form-select" required>
-        <option value="" disabled selected>Оберіть категорію</option>
-        <option value="1">Напої</option>
-        <option value="2">Снеки</option>
-        <option value="3">Овочі</option>
-      </select>
-      <div class="invalid-feedback">Виберіть категорію.</div>
+      <label for="category" class="form-label">Категорія</label>
+      <input
+        id="category"
+        list="cat-list"
+        name="category"
+        class="form-control"
+        value="{{ product_type.category|default('') }}"
+        required
+      >
+      <datalist id="cat-list">
+        {% for c in categories %}
+          <option value="{{ c }}"></option>
+        {% endfor %}
+      </datalist>
+      <div class="form-text">
+        Почніть вводити й оберіть одну з існуючих категорій.
+      </div>
     </div>
 
-    <div class="mb-3">
-      <label for="price" class="form-label">Ціна</label>
-      <input id="price" type="number" step="0.01" name="price" class="form-control" required>
-      <div class="invalid-feedback">Вкажіть ціну.</div>
-    </div>
-
-    <button class="btn btn-primary" type="submit">Зберегти</button>
+    <button type="submit" class="btn btn-primary">
+      {% if mode=='new' %}Створити{% else %}Зберегти{% endif %}
+    </button>
+    <a href="{{ url_for('manager.products') }}" class="btn btn-secondary ms-2">
+      Скасувати
+    </a>
   </form>
 {% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}
+  {% if mode=='new' %}Новий тип товару{% else %}Редагувати тип товару{% endif %} — ZLAGODA
+{% endblock %}
+{% block content %}
+<h2 class="mb-4">
+  {% if mode=='new' %}Новий тип товару{% else %}Редагувати тип товару{% endif %}
+</h2>
+
+<form method="post">
+  <div class="mb-3">
+    <label class="form-label">Назва типу</label>
+    <input type="text" name="name" class="form-control"
+           value="{{ product_type.name|default('') }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Категорія</label>
+    <select name="category" class="form-select" required>
+      {% for c in categories %}
+      <option value="{{ c.name }}"
+        {% if c.name==product_type.category %}selected{% endif %}>
+        {{ c.name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">
+    {% if mode=='new' %}Створити{% else %}Зберегти{% endif %}
+  </button>
+  <a href="{{ url_for('manager.products') }}" class="btn btn-secondary ms-2">Скасувати</a>
+</form>
+{% endblock %}

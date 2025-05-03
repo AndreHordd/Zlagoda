@@ -214,17 +214,16 @@ def get_all_customers(sort_by: str = 'surname', order: str = 'asc', search: str 
     ]
 
 # ───────────────────── для менеджера ─────────────────────
-def get_all_customers_m(sort_by: str = 'surname',
-                        order: str = 'asc',
-                        has_discount: str | None = None,  # '1' | '0' | None
-                        search: str | None = None) -> list[dict]:
+def get_all_customers_m(
+    sort_by: str = 'surname',
+    order: str = 'asc',
+    min_percent: int | None = None,
+    max_percent: int | None = None,
+    search: str | None = None
+) -> list[dict]:
     """
     Повертає список постійних клієнтів з довільним сортуванням
-    і фільтром наявності знижки.
-    has_discount:
-        '1'  → лише ті, у кого percent > 0
-        '0'  → percent = 0
-        None → всі
+    і фільтрами по мінімальній/максимальній знижці та пошуком за прізвищем.
     """
     cols = {
         'card_number': 'card_number',
@@ -238,30 +237,26 @@ def get_all_customers_m(sort_by: str = 'surname',
         'percent':     'percent'
     }
     sort_col   = cols.get(sort_by, cols['surname'])
-    sort_order = 'ASC' if order.lower() == 'asc' else 'DESC'
+    sort_order = 'ASC' if order.lower()=='asc' else 'DESC'
 
-    sql = [
-        "SELECT card_number, cust_surname, cust_name, cust_patronymic,",
-        "       phone_number, city, street, zip_code, percent",
-        "  FROM Customer_Card"
-    ]
-    params = []
+    sql    = ["SELECT card_number, cust_surname, cust_name, cust_patronymic,",
+              "       phone_number, city, street, zip_code, percent",
+              "  FROM Customer_Card"]
     where  = []
+    params = []
 
-    # фільтр «Є знижка / Без знижки»
-    if has_discount == '1':
-        where.append("percent > 0")
-    elif has_discount == '0':
-        where.append("percent = 0")
-
-    # пошук за прізвищем
+    if min_percent is not None:
+        where.append("percent >= %s")
+        params.append(min_percent)
+    if max_percent is not None:
+        where.append("percent <= %s")
+        params.append(max_percent)
     if search:
         where.append("cust_surname ILIKE %s")
         params.append(f"%{search}%")
 
     if where:
         sql.append("WHERE " + " AND ".join(where))
-
     sql.append(f"ORDER BY {sort_col} {sort_order}")
 
     conn = get_db()
@@ -270,16 +265,14 @@ def get_all_customers_m(sort_by: str = 'surname',
     rows = cur.fetchall()
     close_db(conn)
 
-    return [
-        {
-            'card_number': r[0],
-            'surname':     r[1],
-            'name':        r[2],
-            'patronymic':  r[3],
-            'phone':       r[4],
-            'city':        r[5],
-            'street':      r[6],
-            'zip_code':    r[7],
-            'percent':     r[8]
-        } for r in rows
-    ]
+    return [{
+        'card_number': r[0],
+        'surname':     r[1],
+        'name':        r[2],
+        'patronymic':  r[3],
+        'phone':       r[4],
+        'city':        r[5],
+        'street':      r[6],
+        'zip_code':    r[7],
+        'percent':     r[8]
+    } for r in rows]

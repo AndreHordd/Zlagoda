@@ -1,35 +1,63 @@
 {% extends 'base.html' %}
 {% block title %}Панель касира — ZLAGODA{% endblock %}
+
 {% block content %}
-<h2>Панель касира</h2>
+  <h2 class="mb-4">Панель касира</h2>
 
-{% if employee %}
-  <div class="row">
-    <div class="col-lg-6 col-xl-5">
-      <div class="card shadow-sm mb-4">
+  <div class="row g-4">
+    <!-- Ваш профіль -->
+    <div class="col-md-4">
+      <div class="card stat-card border-primary shadow-sm h-100">
+        <div class="stat-card__title bg-primary text-white">
+          <i class="bi bi-person-circle me-1"></i> Ваш профіль
+        </div>
         <div class="card-body">
-          <h5 class="card-title mb-3">
-            {{ employee.surname }} {{ employee.name }}
-            {% if employee.patronymic %}{{ employee.patronymic }}{% endif %}
-          </h5>
+          <p class="fw-bold">{{ employee.surname }} {{ employee.name }}{% if employee.patronymic %} {{ employee.patronymic }}{% endif %}</p>
+          <p><strong>ID працівника:</strong> {{ employee.id }}</p>
+          <p><strong>Роль:</strong> {{ employee.role }}</p>
+          <p><strong>Дата народження:</strong> {{ employee.date_of_birth or '—' }}</p>
+          <p><strong>Початок роботи:</strong> {{ employee.date_of_start or '—' }} </p>
+          <p><strong>Телефон:</strong> {{ employee.phone_number or '—' }} </p>
+          <p><strong>Адреса:</strong>
+            {{ employee.city or '—' }},
+            {{ employee.street or '—' }},
+            {{ employee.zip_code or '—' }}
+          </p>
+          <p><strong>Зарплата:</strong> {{ '%.2f'|format(employee.salary) }} ₴</p>
+        </div>
+      </div>
+    </div>
 
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>Логін:</strong> {{ username }}</li>
-            <li class="list-group-item"><strong>ID працівника:</strong> {{ employee.id }}</li>
-            <li class="list-group-item"><strong>Роль:</strong> {{ employee.role }}</li>
-            <li class="list-group-item"><strong>Зарплата:</strong> {{ '%.2f'|format(employee.salary) }} ₴</li>
-            <li class="list-group-item"><strong>Дата народження:</strong> {{ employee.date_of_birth }}</li>
-            <li class="list-group-item"><strong>Працює з:</strong> {{ employee.date_of_start }}</li>
-            <li class="list-group-item"><strong>Телефон:</strong> {{ employee.phone_number }}</li>
-            <li class="list-group-item"><strong>Адреса:</strong>
-              {{ employee.city }}, {{ employee.street }}, {{ employee.zip_code }}
-            </li>
-          </ul>
+    <!-- Товари у магазині -->
+    <div class="col-md-4">
+      <div class="card stat-card border-success shadow-sm h-100 text-center">
+        <div class="stat-card__title bg-success text-white">
+          <i class="bi bi-box-seam me-1"></i> Товари у магазині
+        </div>
+        <div class="card-body d-flex flex-column justify-content-center">
+          <h3 class="stat-card__value">{{ available_count }}</h3>
+          <small>доступних позицій</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Швидкі дії -->
+    <div class="col-md-4">
+      <div class="card stat-card border-secondary shadow-sm h-100">
+        <div class="stat-card__title bg-secondary text-white">
+          <i class="bi bi-lightning-charge me-1"></i> Швидкі дії
+        </div>
+        <div class="card-body d-flex flex-column gap-2">
+          <a href="{{ url_for('cashier.create_receipt') }}"
+             class="btn btn-primary w-100">
+            <i class="bi bi-plus-circle me-1"></i> Новий чек
+          </a>
+          <a href="{{ url_for('cashier.my_receipts') }}"
+             class="btn btn-outline-primary w-100">
+            <i class="bi bi-journal-text me-1"></i> Мої чеки
+          </a>
         </div>
       </div>
     </div>
   </div>
-{% else %}
-  <p class="text-danger">Не вдалося завантажити ваші дані.</p>
-{% endif %}
 {% endblock %}

@@ -1,98 +1,85 @@
 {% extends 'base.html' %}
 {% block title %}Типи товарів — ZLAGODA{% endblock %}
-{% set arrow = {'asc':'↑','desc':'↓'} %}
 
 {% block content %}
-  <h2>Типи товарів</h2>
+  <h2 class="mb-4">Типи товарів</h2>
 
   <p>
     <a href="{{ url_for('manager.store_products') }}"
-       class="btn btn-outline-info mb-3">
+       class="btn btn-outline-primary mb-3">
       → Товари у магазині
+    </a>
+    <a href="{{ url_for('manager.new_product_type') }}"
+       class="btn btn-success mb-3 ms-2">
+      + Додати тип
     </a>
   </p>
 
   <form method="get" class="mb-3">
-    <div class="row g-2 align-items-end">
-      <!-- Категорія -->
-      <div class="col-md-3">
-        <label for="category" class="form-label">Категорія</label>
-        <select id="category" name="category" class="form-select">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">Категорія</label>
+        <select name="category" class="form-select">
           <option value="">Усі категорії</option>
           {% for c in categories %}
-            <option value="{{ c.name }}"
-                    {% if c.name==category %}selected{% endif %}>
-              {{ c.name }}
-            </option>
+          <option value="{{ c }}" {% if c==category %}selected{% endif %}>{{ c }}</option>
           {% endfor %}
         </select>
       </div>
-
-      <!-- Пошук за назвою -->
       <div class="col-md-4">
-        <label for="search" class="form-label">Пошук за назвою</label>
-        <input
-          type="text"
-          id="search"
-          name="search"
-          class="form-control"
-          placeholder="Введіть назву..."
-          value="{{ search or '' }}"
-        >
-      </div>
-
-      <!-- Кнопки -->
-      <div class="col-auto">
-        <button type="submit" class="btn btn-primary">Застосувати</button>
+        <label class="form-label">Пошук</label>
+        <input type="text" name="search" class="form-control"
+               placeholder="Введіть назву…" value="{{ search or '' }}">
       </div>
       <div class="col-auto">
+        <button class="btn btn-primary">Застосувати</button>
         <a href="{{ url_for('manager.products') }}"
-           class="btn btn-outline-secondary ms-2">
-          Скинути
-        </a>
+           class="btn btn-secondary ms-2">Скинути</a>
       </div>
     </div>
   </form>
 
-  {% if product_types %}
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          {% for col,label in [
-            ('id','ID'),
-            ('name','Назва'),
-            ('characteristics','Опис'),
-            ('manufacturer','Виробник'),
-            ('category','Категорія')
-          ] %}
-            <th>
-              <a href="{{ url_for('manager.products',
-                                   sort_by=col,
-                                   order=('desc' if sort_by==col and order=='asc' else 'asc'),
-                                   category=category,
-                                   search=search) }}">
-                {{ label }}
-                {% if sort_by==col %}
-                  {{ arrow[order] }}
-                {% endif %}
-              </a>
-            </th>
-          {% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in product_types %}
-          <tr>
-            <td>{{ p.id }}</td>
-            <td>{{ p.name }}</td>
-            <td>{{ p.characteristics }}</td>
-            <td>{{ p.manufacturer }}</td>
-            <td>{{ p.category }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>Немає типів товарів.</p>
-  {% endif %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        {% set arrow = {'asc':'↑','desc':'↓'} %}
+        <th>
+          <a href="{{ url_for('manager.products',
+                sort_by='name',
+                order=('desc' if sort_by=='name' and order=='asc' else 'asc'),
+                category=category,
+                search=search) }}">
+            Назва {% if sort_by=='name' %}{{ arrow[order] }}{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('manager.products',
+                sort_by='category',
+                order=('desc' if sort_by=='category' and order=='asc' else 'asc'),
+                category=category,
+                search=search) }}">
+            Категорія {% if sort_by=='category' %}{{ arrow[order] }}{% endif %}
+          </a>
+        </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in product_types %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td>{{ t.category }}</td>
+        <td>
+          <a href="{{ url_for('manager.edit_product_type', pt_id=t.id) }}"
+             class="btn btn-sm btn-outline-secondary">Редагувати</a>
+          <form method="post"
+                action="{{ url_for('manager.delete_product_type_route', pt_id=t.id) }}"
+                class="d-inline" onsubmit="return confirm('Видалити?');">
+            <button class="btn btn-sm btn-outline-danger">✕</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

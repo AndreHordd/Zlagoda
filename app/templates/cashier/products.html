@@ -40,12 +40,11 @@
       <div class="col-md-5">
         <label class="form-label">Пошук</label>
         <div class="input-group">
-          <select name="field" class="form-select" style="max-width:35%;">
-            <option value="name"            {% if field=='name' %}selected{% endif %}>Назва</option>
-            <option value="upc"             {% if field=='upc' %}selected{% endif %}>UPC</option>
-            <option value="category"        {% if field=='category' %}selected{% endif %}>Категорія</option>
-            <option value="characteristics" {% if field=='characteristics' %}selected{% endif %}>Опис</option>
+          <select name="field" class="form-select">
+  <option value="name" {% if field=='name' %}selected{% endif %}>Назва</option>
+  <option value="upc"  {% if field=='upc'  %}selected{% endif %}>UPC</option>
           </select>
+
           <input type="text" name="search" class="form-control"
                  placeholder="Введіть запит…" value="{{ search or '' }}">
         </div>
