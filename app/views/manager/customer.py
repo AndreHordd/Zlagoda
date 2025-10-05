@@ -2,7 +2,7 @@ from flask import (
     Blueprint, render_template, request,
     redirect, url_for, flash, abort
 )
-from psycopg.errors import ForeignKeyViolation
+import sqlite3
 from app.dao.customer_card_dao import (
     get_all_customers_m,
     get_all_categories  # непотрібно – лишив для прикладу
@@ -151,7 +151,7 @@ def delete_customer(card_number):
             flash('Клієнта видалено.', 'success')
         else:
             flash('Не вдалося видалити клієнта.', 'danger')
-    except ForeignKeyViolation:
+    except sqlite3.IntegrityError:
         flash('Неможливо видалити — на клієнта є чек.', 'danger')
     except Exception as e:
         flash(f'Помилка БД: {e}', 'danger')

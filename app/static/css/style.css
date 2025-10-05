@@ -1,4 +1,6 @@
-/* Загальні налаштування */
+/* ==================== ОСНОВНІ СТИЛІ ==================== */
+
+/* Загальні налаштування body */
 body {
   font-family: "Segoe UI", Tahoma, sans-serif;
   background-color: #f5f5f5;
@@ -9,219 +11,200 @@ body {
   min-height: 100vh;
 }
 
-/* Navbar */
-.navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-/* Sidebar */
-#sidebar {
-  min-height: calc(100vh - 56px);
-}
-#sidebar .nav-link {
-  color: #555;
-  border-radius: .25rem;
-  transition: background-color .2s;
-}
-#sidebar .nav-link:hover,
-#sidebar .nav-link.active {
-  background-color: #e9ecef;
-  color: #000;
-}
-
-/* Основний контент з відступом під sidebar */
-body:not(.logged-in) main { margin-left: 0; }
-body.logged-in .d-flex > main { margin-left: 240px; }
-
-/* Footer */
-footer { margin-top: auto; }
-
-/* Картки та форми */
-.card { border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
-
-/* Адаптивність */
-@media (max-width: 768px) {
-  #sidebar { display: none; }
-  body.logged-in .d-flex > main { margin-left: 0; }
-}
-
-/* Адаптивність: ховаємо sidebar на маленьких екранах */
-@media (max-width: 768px) {
-  #sidebar {
-    display: none !important;
-  }
-  main {
-    margin-left: 0 !important;
-  }
-}
-
-/* Print-стилі: сховаємо навігацію, кнопки, sidebar та footer */
-@media print {
-  nav.navbar,
-  #sidebar,
-  footer,
-  .btn,
-  .needs-validation {
-    display: none !important;
-  }
-  body {
-    background: #fff !important;
-    color: #000 !important;
-  }
-  main {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-}
-/* ───── стиль “кнопок”-сортування у заголовках таблиць ───── */
-.table thead th > a {
-  display: inline-flex;
-  align-items: center;
-  gap: .25rem;          /* невеликий відступ між текстом і стрілкою */
-  padding: 0;
-  border: none;
-  background: none;
-  font-weight: 600;
-  color: #212529;       /* звичайний темний текст */
-  text-decoration: none;
-}
-
-.table thead th > a:hover,
-.table thead th > a:focus {
-  color: #0d6efd;       /* той самий колір, що й посилання Bootstrap */
-  text-decoration: none;
-}
-
-.table thead th > a .arrow {   /* якщо у вас стрілки текстові (↑ / ↓)  */
-  font-size: .85em;
-  line-height: 1;
-}
-/* ────────── Макет із фіксованим лівим сайдбаром ────────── */
-#sidebar{
-  width:240px;
-  position:fixed;              /* завжди зліва */
-  top:56px;                    /* висота navbar */
-  bottom:0;
-  left:0;
-  overflow-y:auto;
-  padding:1rem 0.75rem;
-  background:#fff;
-  border-right:1px solid #dee2e6;
-  z-index:1030;                /* вище контенту, нижче navbar */
-}
-
-/* головний контент */
-main#content{
-  margin-left:240px;           /* ширина сайдбара */
-  padding:2rem;                /* універсальний відступ */
-  min-height:calc(100vh - 56px - 56px); /* щоб футер знизу */
-}
-
-/* футер */
-footer{
-  height:56px;
-  line-height:56px;
-}
-
-/* ─── Адаптивність: екрани < 768px ─── */
-@media (max-width: 767.98px){
-  #sidebar{display:none;}
-  main#content{margin-left:0;padding:1rem;}
-}
-/* ───────── статичні картки статистики ───────── */
-.stat-card { border-width: 2px; border-radius: .5rem; }
-
-.stat-card__title{
-  padding:.5rem;
-  font-weight:600;
-  border-top-left-radius:.5rem;
-  border-top-right-radius:.5rem;
-}
-
-.stat-card__value{ font-size:2rem; margin:0; }
-
-/* ─── Підказки datalist в один рядок ─── */
-datalist option{
-  white-space: nowrap;      /* без переносу */
-  padding: .25rem .5rem;    /* як у list-group */
-  border-bottom:1px solid #dee2e6;
-}
-datalist option:last-child{ border-bottom:none; }
-
-/* list-group у підказці statistics */
-#product-list .list-group-item{
-  white-space: nowrap;
-  padding: .5rem .75rem;
-}
-/* Зробити sidebar фіксованим під navbar */
-body.logged-in .d-flex > nav#sidebar {
-  position: fixed;
-  top: 56px;               /* висота navbar */
-  left: 0;
-  width: 240px;
-  height: calc(100vh - 56px);
-  overflow-y: auto;
-  z-index: 100;            /* щоб був вище контенту */
-}
-
-/* Додати відступ зліва для основного контенту */
-body.logged-in main {
-  margin-left: 240px !important;
-  padding-top: 1rem;
-}
-
-/* Злегка підняти navbar зверху */
-nav.navbar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 200;
-}
-
-/* Щоб footer не заходив на контент */
-footer {
-  margin-left: 240px;
-}
-/* 1. Фіксуємо верхній navbar */
+/* Navbar фіксований зверху */
 nav.navbar {
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 1030;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* 2. Фіксуємо sidebar та задаємо його розміри */
-nav#sidebar {
+/* ==================== SIDEBAR (тільки для залогінених) ==================== */
+
+/* Sidebar фіксований зліва */
+body.logged-in nav#sidebar {
   position: fixed;
   top: 56px;               /* висота navbar */
   left: 0;
   bottom: 0;
   width: 240px;
   overflow-y: auto;
+  padding: 1rem 0.75rem;
   background: #fff;
+  border-right: 1px solid #dee2e6;
   z-index: 1020;
 }
 
-/* 3. Додаємо відступи основному контенту */
-.main-content {
-  margin-top: 56px;        /* щоб не ховався під navbar */
-  margin-left: 240px;      /* щоб не ховався під sidebar */
-  padding: 1.5rem;
+/* Стилі посилань у sidebar */
+body.logged-in #sidebar .nav-link {
+  color: #555;
+  border-radius: .25rem;
+  transition: background-color .2s;
 }
 
-/* 4. Щоб footer теж зміщувався під sidebar */
-footer {
+body.logged-in #sidebar .nav-link:hover,
+body.logged-in #sidebar .nav-link.active {
+  background-color: #e9ecef;
+  color: #000;
+}
+
+/* ==================== ОСНОВНИЙ КОНТЕНТ ==================== */
+
+/* Main контент для незалогінених користувачів */
+body:not(.logged-in) main {
+  margin-top: 56px;        /* відступ під navbar */
+  margin-left: 0;
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+/* Main контент для залогінених користувачів (з sidebar) */
+body.logged-in main {
+  margin-top: 56px;        /* відступ під navbar */
+  margin-left: 240px;      /* відступ під sidebar */
+  padding: 1.5rem;
+  flex-grow: 1;
+  min-height: calc(100vh - 56px - 56px); /* navbar + footer */
+}
+
+/* ==================== FOOTER ==================== */
+
+/* Footer для незалогінених користувачів */
+body:not(.logged-in) footer {
+  margin-left: 0;
+  background-color: #f8f9fa;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: auto;
+}
+
+/* Footer для залогінених користувачів */
+body.logged-in footer {
   margin-left: 240px;
+  background-color: #f8f9fa;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: auto;
 }
-/* Зсув контенту униз на висоту navbar (56px за замовчуванням Bootstrap) */
-body > .container-fluid {
-  margin-top: 56px !important;
+
+/* ==================== КАРТКИ ТА ФОРМИ ==================== */
+
+.card { 
+  border-radius: .5rem; 
+  box-shadow: 0 1px 3px rgba(0,0,0,.1); 
 }
-/* Відсуваємо весь основний контент під navbar висотою приблизно 56px */
-#content {
-  margin-top: 56px;
+
+/* Статистичні картки */
+.stat-card { 
+  border-width: 2px; 
+  border-radius: .5rem; 
 }
-/* Замість nowrap / ellipsis */
+
+.stat-card__title {
+  padding: .5rem;
+  font-weight: 600;
+  border-top-left-radius: .5rem;
+  border-top-right-radius: .5rem;
+}
+
+.stat-card__value { 
+  font-size: 2rem; 
+  margin: 0; 
+}
+
+/* ==================== ТАБЛИЦІ ==================== */
+
+/* Стиль сортування у заголовках таблиць */
+.table thead th > a {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-weight: 600;
+  color: #212529;
+  text-decoration: none;
+}
+
+.table thead th > a:hover,
+.table thead th > a:focus {
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+.table thead th > a .arrow {
+  font-size: .85em;
+  line-height: 1;
+}
+
+/* Інпути в таблицях */
 td input {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
+}
+
+/* ==================== DATALIST ТА СПИСКИ ==================== */
+
+/* Підказки datalist */
+datalist option {
+  white-space: nowrap;
+  padding: .25rem .5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+datalist option:last-child { 
+  border-bottom: none; 
+}
+
+/* Списки у підказках */
+#product-list .list-group-item {
+  white-space: nowrap;
+  padding: .5rem .75rem;
+}
+
+/* ==================== АДАПТИВНІСТЬ ==================== */
+
+/* Екрани менше 768px */
+@media (max-width: 767.98px) {
+  /* Ховаємо sidebar */
+  body.logged-in nav#sidebar {
+    display: none;
+  }
+  
+  /* Прибираємо відступ для main */
+  body.logged-in main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+  
+  /* Прибираємо відступ для footer */
+  body.logged-in footer {
+    margin-left: 0;
+  }
+}
+
+/* ==================== ДРУК ==================== */
+
+/* Стилі для друку */
+@media print {
+  nav.navbar,
+  nav#sidebar,
+  footer,
+  .btn,
+  .needs-validation {
+    display: none !important;
+  }
+  
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }

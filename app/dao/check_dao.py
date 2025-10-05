@@ -13,6 +13,15 @@ from typing    import List, Dict, Any
 from app.utils.db import get_db, close_db
 
 
+def _format_datetime(value):
+    """Конвертує datetime або string у форматований рядок"""
+    if isinstance(value, str):
+        return value  # SQLite вже зберігає як рядок
+    if isinstance(value, (datetime, date)):
+        return value.strftime("%Y-%m-%d %H:%M:%S")
+    return str(value)
+
+
 # ────────────────────────────── CREATE ──────────────────────────────
 def create_check(check_number: str | None,
                  employee_id: str,
@@ -173,7 +182,7 @@ def get_checks_by_employee_period(employee_id: str,
     return [
         {
             "number": r[0],
-            "date":   r[1].strftime("%Y-%m-%d %H:%M:%S"),
+            "date":   _format_datetime(r[1]),
             "total":  float(r[2])
         } for r in rows
     ]
@@ -214,7 +223,7 @@ def get_check_details(check_number: str) -> Dict[str, Any] | None:
 
     header = {
         "number":  head[0],
-        "date":    head[1].strftime("%Y-%m-%d %H:%M:%S"),
+        "date":    _format_datetime(head[1]),
         "total":   float(head[2]),
         "cashier": head[3],
         "card":    head[4],
@@ -288,7 +297,7 @@ def get_all_checks(sort_by: str = 'date',
     return [
         {
             'number': r[0],
-            'date':   r[1].strftime('%Y-%m-%d %H:%M:%S'),
+            'date':   _format_datetime(r[1]),
             'cashier': r[2],
             'total':  float(r[3])
         } for r in rows
@@ -338,7 +347,7 @@ def get_checks_all_period(date_from: date | None,
     return [
         {
             "number": r[0],
-            "date":   r[1].strftime("%Y-%m-%d %H:%M:%S"),
+            "date":   _format_datetime(r[1]),
             "total":  float(r[2]),
             "cashier_id":   r[3],
             "cashier_name": r[4]

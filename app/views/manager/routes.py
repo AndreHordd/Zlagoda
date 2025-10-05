@@ -21,7 +21,7 @@ from flask import (
     Blueprint, render_template, request,
     redirect, url_for, flash, abort
 )
-from psycopg.errors import ForeignKeyViolation
+import sqlite3
 
 from app.dao.report_dao import categories_sold_by_cashier, category_price_stats, cashiers_every_check_has_category, \
     categories_without_promos
@@ -365,7 +365,7 @@ def delete_customer(card_number):
     try:
         ok = delete_card(card_number)
         flash('Клієнта видалено', 'success' if ok else 'warning')
-    except ForeignKeyViolation:
+    except sqlite3.IntegrityError:
         flash('Неможливо видалити — на клієнта є записи в чеках', 'danger')
     except Exception as e:
         flash(f'Помилка БД: {e}', 'danger')
@@ -427,7 +427,7 @@ def delete_category_route(cat_id):
             flash('Категорію видалено.', 'success')
         else:
             flash('Не вдалося видалити категорію.', 'danger')
-    except ForeignKeyViolation:
+    except sqlite3.IntegrityError:
         flash(
             'Неможливо видалити категорію — у базі є товари цієї категорії.',
             'danger'
@@ -800,6 +800,9 @@ def statistics():
     ref_day    = request.args.get('date','')
     upc_or_name = request.args.get('product') or None
 
+    # Ініціалізуємо ref за замовчуванням
+    ref = date.today()
+    
     if period=='all':
         d_from = d_to = None
     else:

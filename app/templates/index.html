@@ -3,6 +3,14 @@
 {% block content %}
   <div class="text-center mt-5">
     <h1>Ласкаво просимо до ZLAGODA AIS</h1>
+    
+    {% if not db_available %}
+    <div class="alert alert-warning mt-4 mx-auto" style="max-width: 600px;">
+      <h5 class="alert-heading">⚠️ База даних недоступна</h5>
+      <p class="mb-0">Додаток запущено, але підключення до бази даних не встановлено. Функціональність буде обмежена.</p>
+    </div>
+    {% endif %}
+    
     <p class="mt-4">
       <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg me-2">Увійти</a>
       <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">Реєстрація</a>

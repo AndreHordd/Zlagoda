@@ -12,7 +12,7 @@ from flask import (
     send_from_directory
 )
 
-from .utils.db import get_db, close_db
+from .utils.db import get_db, close_db, db_available
 from .api.auth import auth_bp
 from .views.manager.routes import manager_bp
 from .views.cashier.routes import cashier_bp
@@ -62,6 +62,13 @@ def create_app() -> Flask:
     app.register_blueprint(cashier_bp, url_prefix='/cashier')
 
     # ------------------------------------------------------------------
+    # закриття БД після кожного запиту
+    # ------------------------------------------------------------------
+    @app.teardown_appcontext
+    def teardown_db(exception=None):
+        close_db()
+    
+    # ------------------------------------------------------------------
     # автоматичне застосування акцій перед кожним запитом
     # ------------------------------------------------------------------
     @app.before_request
@@ -78,42 +85,50 @@ def create_app() -> Flask:
         g.current_user = None
         if 'user_id' in session:
             conn = get_db()
-            cur = conn.cursor()
-            cur.execute(
-                """
-                SELECT id, username, role, employee_id
-                  FROM auth_user
-                 WHERE id = %s
-                """,
-                (session['user_id'],)
-            )
-            row = cur.fetchone()
-            if row:
-                # за замовчуванням виводимо username
-                full_name = row[1]
-                # якщо привʼязаний працівник — замінюємо на прізвище + ім'я
-                if row[3]:
-                    cur.execute(
-                        """
-                        SELECT empl_surname, empl_name
-                          FROM Employee
-                         WHERE id_employee = %s
-                        """,
-                        (row[3],)
-                    )
-                    emp = cur.fetchone()
-                    if emp:
-                        full_name = f"{emp[0]} {emp[1]}"
-
-                g.current_user = type(
-                    'User', (), {
-                        'id':       row[0],
-                        'username': row[1],
-                        'name':     full_name,
-                        'role':     row[2]
-                    }
+            if not conn:
+                # БД недоступна, пропускаємо
+                return
+            
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    """
+                    SELECT id, username, role, employee_id
+                      FROM auth_user
+                     WHERE id = %s
+                    """,
+                    (session['user_id'],)
                 )
-            close_db(conn)
+                row = cur.fetchone()
+                if row:
+                    # за замовчуванням виводимо username
+                    full_name = row[1]
+                    # якщо привʼязаний працівник — замінюємо на прізвище + ім'я
+                    if row[3]:
+                        cur.execute(
+                            """
+                            SELECT empl_surname, empl_name
+                              FROM Employee
+                             WHERE id_employee = %s
+                            """,
+                            (row[3],)
+                        )
+                        emp = cur.fetchone()
+                        if emp:
+                            full_name = f"{emp[0]} {emp[1]}"
+
+                    g.current_user = type(
+                        'User', (), {
+                            'id':       row[0],
+                            'username': row[1],
+                            'name':     full_name,
+                            'role':     row[2]
+                        }
+                    )
+            except Exception as e:
+                print(f"[WARNING] Error loading user: {e}")
+            finally:
+                close_db(conn)
 
     # ------------------------------------------------------------------
     # змінні доступні у всіх шаблонах
@@ -134,7 +149,22 @@ def create_app() -> Flask:
         if getattr(g, 'current_user', None):
             return redirect(url_for(f"{g.current_user.role}.dashboard"))
         g.breadcrumb = [('Головна', url_for('index'))]
-        return render_template('index.html')
+        
+        # Перевіряємо доступність БД та передаємо до шаблону
+        db_status = db_available()
+        return render_template('index.html', db_available=db_status)
+    
+    # ------------------------------------------------------------------
+    # статус підключення до БД
+    # ------------------------------------------------------------------
+    @app.route('/db-status')
+    def db_status():
+        """Перевірка статусу підключення до бази даних."""
+        is_available = db_available()
+        return {
+            'available': is_available,
+            'message': 'База даних підключена' if is_available else 'База даних недоступна'
+        }
 
     # ------------------------------------------------------------------
     # favicon.ico — уникаємо 404/500 у логах

@@ -5,8 +5,18 @@ DAO-рівень для таблиці Employee:
 
 import uuid
 from typing import List, Dict, Any
+from datetime import date
 
 from app.utils.db import get_db, close_db
+
+
+def _to_date_string(value):
+    """Конвертує date або string у string (для SQLite сумісності)"""
+    if value is None:
+        return None
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value)
 
 
 # ───────────────────────── допоміжне ──────────────────────────
@@ -115,8 +125,8 @@ def get_all_employees(sort_by: str = 'surname',
             "patronymic":     r[3],
             "role":           r[4],
             "salary":         float(r[5]),
-            "date_of_birth":  r[6].isoformat(),
-            "date_of_start":  r[7].isoformat(),
+            "date_of_birth":  _to_date_string(r[6]),
+            "date_of_start":  _to_date_string(r[7]),
             "phone_number":   r[8],
             "city":           r[9],
             "street":         r[10],
@@ -152,8 +162,8 @@ def get_employee_by_id(emp_id: str) -> Dict[str, Any] | None:
         "patronymic":     r[3],
         "role":           r[4],
         "salary":         float(r[5]),
-        "date_of_birth":  r[6].isoformat(),
-        "date_of_start":  r[7].isoformat(),
+        "date_of_birth":  _to_date_string(r[6]),
+        "date_of_start":  _to_date_string(r[7]),
         "phone_number":   r[8],
         "city":           r[9],
         "street":         r[10],

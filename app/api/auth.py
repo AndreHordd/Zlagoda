@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-import psycopg.errors as db_errors
+import sqlite3
 
 from app.dao.employee_dao import create_employee
 from app.dao.auth_dao     import get_user_by_username, create_user
@@ -76,7 +76,7 @@ def register():
                 form_data.get('street', ''),
                 form_data.get('zip_code', '')
             )
-        except db_errors.CheckViolation:
+        except sqlite3.IntegrityError:
             flash('Некоректні дані працівника', 'error')
             return render_template('auth/register.html', form_data=form_data)
         except Exception:
@@ -92,7 +92,7 @@ def register():
                 form_data.get('empl_role', ''),
                 new_emp_id
             )
-        except db_errors.UniqueViolation:
+        except sqlite3.IntegrityError:
             flash('Логін уже існує', 'error')
             return render_template('auth/register.html', form_data=form_data)
         except Exception:
